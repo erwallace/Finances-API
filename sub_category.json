@@ -1,0 +1,30 @@
+{"Transport": "Transport",
+  "Car": "Transport",
+
+  "Lunch": "Food & Drink",
+  "Snacks": "Food & Drink",
+  "Groceries": "Food & Drink",
+  "Eating out": "Food & Drink",
+  "Alcohol": "Food & Drink",
+
+  "Shopping": "Shopping",
+  "Clothes": "Shopping",
+  "Electronics": "Shopping",
+  "Personal care": "Shopping",
+  "Gifts": "Shopping",
+
+  "Holidays": "Holidays",
+
+  "Entertainment": "Entertainment",
+
+  "Bills": "Bills",
+
+  "Income": "Income",
+
+  "General": "Miscellaneous",
+  "Charity": "Miscellaneous",
+  "Expenses": "Miscellaneous",
+  "Savings": "Miscellaneous",
+  "Transfers": "Miscellaneous",
+  "Family": "Miscellaneous",
+  "Finances": "Miscellaneous"}
