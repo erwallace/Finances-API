@@ -1,0 +1,8 @@
+name,company,amount,interest_%,duration_months,maturity_date
+Brown Shipley,AJBell,1729,1.9,12,17/05/2023
+Brown Shipley,AJBell,1200,2.1,12,06/07/2023
+AU Bank,AJBell,10000,4.32,12,03/03/2024
+Brown Shipley,AJBell,2500,4.03,9,03/01/2024
+Brown Shipley,AJBell,2500,3.58,6,03/10/2023
+Treasury Index Linked Gilt,Hargreaves Landsdown,3000,0,36,01/04/2026
+17 Stable Close Deposit,House Deposit,850,0,5,16/09/2023

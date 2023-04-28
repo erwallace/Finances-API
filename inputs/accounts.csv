@@ -1,0 +1,10 @@
+account,balance,comment
+date,28/04/2023,always the last day of that month in the format dd/mm/yy
+monzo_current,,
+monzo_rainy_day,,
+monzo_treats,,
+monzo_holidays,,
+monzo_savings,,
+HSBC_current,,
+HSBC_savings,,
+HSBC_credit,,

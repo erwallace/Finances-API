@@ -1,0 +1,6 @@
+type,amount,comment
+date,28/04/2023,always the last day of that month in the format dd/mm/yy
+income,,positive
+tax,,negative
+student_loan,,negative
+ni,,negative
