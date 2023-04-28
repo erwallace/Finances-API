@@ -2,10 +2,13 @@ from dataclasses import dataclass
 from datetime import datetime
 import io
 import json
-from typing import List
+from typing import List, Tuple, Any
 
 import pandas as pd
 import numpy as np
+
+import logging
+import log
 
 import random
 import string
@@ -35,8 +38,8 @@ class SchemaMonzo:
     IN: str = 'in'
 
     # CALCULATED/CREATED
-    DATETIME: str = 'datetime'
-    MONTH: str = 'month_id'
+    DATETIME: str = 'date'
+    MONTH_ID: str = 'month_id'
     CATEGORY: str = 'category'
 
     @property
@@ -49,8 +52,8 @@ class SchemaMonzo:
     @property
     def df_columns_final(self) -> List[str]:
         '''provides all the columns in necessary order for correct exporting of dataframe'''
-        return [self.ID, self.MONTH, self.DATETIME, self.TYPE, self.NAME, self.CATEGORY, self.SUBCATEGORY, self.ADDRESS,
-                self.DESCRIPTION, self.OUT, self.IN]
+        return [self.ID, self.MONTH_ID, self.DATETIME, self.TYPE, self.NAME, self.CATEGORY, self.SUBCATEGORY,
+                self.ADDRESS, self.DESCRIPTION, self.OUT, self.IN]
 
 
 @dataclass
@@ -105,6 +108,7 @@ class SchemaInvestmentVariable:
 
     # CALCULATED/CREATED
     MONTH_ID: str = 'month_id'
+    VALUE: str = 'value'
 
     @property
     def df_columns_initial(self) -> List[str]:
@@ -114,7 +118,7 @@ class SchemaInvestmentVariable:
     @property
     def df_columns_final(self) -> List[str]:
         '''provides all the columns in necessary order for correct exporting of dataframe'''
-        return [self.NAME, self.DATETIME, self.MONTH_ID, self.COMPANY, self.UNIT_PRICE, self.UNITS_OWNED]
+        return [self.NAME, self.DATETIME, self.MONTH_ID, self.COMPANY, self.UNIT_PRICE, self.UNITS_OWNED, self.VALUE]
 
 
 @dataclass
@@ -156,20 +160,25 @@ class Monzo(Budget):
     SKIPROWS: int = 1
     SCHEMA: SchemaMonzo = SchemaMonzo()
 
-    def preprocess(self, log_file: str | io.BytesIO | io.StringIO) -> pd.DataFrame:
+    def preprocess(self, log_file: str | io.BytesIO | io.StringIO) -> tuple[pd.DataFrame, pd.DataFrame]:
         '''loads Monzo file and returns as pandas dataframe'''
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         # add additional information
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df)
-        df[self.SCHEMA.MONTH] = self.add_month_id_column(df)
+        df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.CATEGORY] = self.add_category_column(df)
 
         df = self.split_subcategory_payments(df)
 
         df = df[self.SCHEMA.df_columns_final]
 
-        return df
+        months = df[self.SCHEMA.MONTH_ID].unique()
+        dt = [datetime.strptime(m, self.MONTH_FORMAT) for m in months]
+        months = pd.DataFrame({self.SCHEMA.MONTH_ID: months,
+                               self.SCHEMA.DATETIME: dt})
+
+        return df, months
 
     def add_datetime_column(self, df: pd.DataFrame) -> pd.Series:
         '''adds datetime column to existing dataframe based on date and time columns'''
@@ -288,6 +297,7 @@ class InvestmentVariable(Budget):
 
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
+        df[self.SCHEMA.VALUE] = self.add_value_column(df)
         df = df[self.SCHEMA.df_columns_final]
 
         return df
@@ -298,6 +308,11 @@ class InvestmentVariable(Budget):
         extract_datetime = lambda x: datetime.strptime(x, self.DATETIME_FORMAT)
 
         return df[self.SCHEMA.DATETIME].apply(extract_datetime)
+
+    def add_value_column(self, df: pd.DataFrame) -> pd.Series:
+        '''adds value column to existing dataframe based on unit_price and units_owned columns'''
+        val = df[self.SCHEMA.UNIT_PRICE] * df[self.SCHEMA.UNITS_OWNED]
+        return val.round(2)
 
 
 class InvestmentFixed(Budget):
@@ -316,11 +331,12 @@ class InvestmentFixed(Budget):
     def add_return_column(self, df: pd.DataFrame) -> pd.Series:
 
         df['duration_yrs'] = df[self.SCHEMA.DURATION]//12 + (df[self.SCHEMA.DURATION]%12)/12
-        return df['duration_yrs'] * df[self.SCHEMA.AMOUNT] * (df[self.SCHEMA.INTEREST]/100)
+        rtn = df['duration_yrs'] * df[self.SCHEMA.AMOUNT] * (df[self.SCHEMA.INTEREST]/100)
+        return rtn.round(2)
 
 # example
 mz = Monzo()
-df_mz = mz.preprocess('statements/MonzoDataExport_March_2023-04-01_085048.csv')
+df_mz, months = mz.preprocess('statements/MonzoDataExport_March_2023-04-01_085048.csv')
 
 acc = Accounts()
 df_acc = acc.preprocess()
