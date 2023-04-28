@@ -38,7 +38,7 @@ class SQL:
         with self.engine.begin() as conn:
             conn.execute(
                 text('CREATE TABLE spending_data ('
-                     '"id" CHAR(25) PRIMARY KEY,'
+                     '"id" CHAR(11) PRIMARY KEY,'
                      '"month_id" CHAR(6) REFERENCES months (month_id),'
                      '"date" TIMESTAMP,'
                      '"type" VARCHAR,'
@@ -59,11 +59,11 @@ class SQL:
         with self.engine.begin() as conn:
             conn.execute(
                 text('CREATE TABLE accounts ('
+                     '"id" CHAR(11) PRIMARY KEY,'
                      '"account" VARCHAR,'
                      '"date" TIMESTAMP,'
                      '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"balance" DECIMAL(12,2),'
-                     'PRIMARY KEY ("account", "month_id"))'
+                     '"balance" DECIMAL(12,2))'
                      )
             )
         logging.info(f'table created: accounts')
@@ -74,11 +74,11 @@ class SQL:
         with self.engine.begin() as conn:
             conn.execute(
                 text('CREATE TABLE income ('
+                     '"id" CHAR(11) PRIMARY KEY,'
                      '"type" VARCHAR,'
                      '"date" TIMESTAMP,'
                      '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"amount" DECIMAL(12,2),'
-                     'PRIMARY KEY ("type", "month_id"))'
+                     '"amount" DECIMAL(12,2))'
                      )
             )
         logging.info(f'table created: income')
@@ -89,13 +89,14 @@ class SQL:
         with self.engine.begin() as conn:
             conn.execute(
                 text('CREATE TABLE investments_variable ('
+                     '"id" CHAR(11) PRIMARY KEY,'
                      '"name" VARCHAR,'
                      '"date" TIMESTAMP,'
                      '"month_id" CHAR(6) REFERENCES months (month_id),'
+                     '"company" VARCHAR,'
                      '"unit_price" NUMERIC,'
                      '"units_owned" NUMERIC,'
-                     '"value" DECIMAL(12,2),'
-                     'PRIMARY KEY ("name", "month_id"))'
+                     '"value" DECIMAL(12,2))'
                      )
             )
         logging.info(f'table created: investments_variable')
@@ -106,7 +107,7 @@ class SQL:
         with self.engine.begin() as conn:
             conn.execute(
                 text('CREATE TABLE investments_fixed ('
-                     '"id" SERIAL PRIMARY KEY,'
+                     '"id" VARCHAR PRIMARY KEY,'
                      '"name" VARCHAR,'
                      '"company" VARCHAR,'
                      '"amount" DECIMAL(12,2),'
@@ -147,24 +148,24 @@ class SQL:
         """check for duplicates and append to spending_data table in database"""
 
         # TODO: use schema values (?)
-        primary_keys = {'months': ['month_id', 'date'],
-                        'spending_data': ['id', 'month_id'],
-                        'accounts': ['account', 'month_id'],
-                        'income': ['type', 'month_id'],
-                        'investments_variable': ['name', 'month_id'],
-                        'investments_fixed': ['name', 'amount', 'duration_months', 'maturity_date', 'return']
+        primary_keys = {'months': 'month_id',  # TODO: adding duplicate rows due to randomly generated id's from category split
+                        'spending_data': 'id',
+                        'accounts': 'id',
+                        'income': 'id',
+                        'investments_variable': 'id',
+                        'investments_fixed': 'id'  # TODO: adding duplicated rows
                         }
         assert table_name in primary_keys.keys(), f'{table_name} is not a valid table name.'
         p_key = primary_keys[table_name]
 
         with self.engine.connect() as conn:
 
-            db = pd.read_sql(sql=text(f'SELECT {", ".join(p_key)} FROM {table_name}'),
+            db = pd.read_sql(sql=text(f'SELECT {p_key} FROM {table_name}'),
                              con=conn
                              )
 
         # append non-duplicate rows
-        non_duplicates = df[df[p_key].isin(db[p_key]) == False].dropna()
+        non_duplicates = df[df[p_key].isin(db[p_key]) == False].dropna(how='all')
         # error if no rows are would be appended
         if non_duplicates.shape[0] == 0:
             logging.error(f'NO ROWS FROM DF APPENDED TO {table_name.upper()} (sqlalchemy.exc.IntegrityError)')

@@ -10,10 +10,6 @@ import numpy as np
 import logging
 import log
 
-import random
-import string
-
-
 # TODO: how am I going to add in rent?
 
 @dataclass
@@ -63,6 +59,7 @@ class SchemaAccounts:
     COMMENT: str = 'comment'
 
     # CALCULATED/CREATED
+    ID: str = 'id'
     DATETIME: str = 'date'
     MONTH_ID: str = 'month_id'
 
@@ -74,7 +71,7 @@ class SchemaAccounts:
     @property
     def df_columns_final(self) -> List[str]:
         '''provides all the columns in necessary order for correct exporting of dataframe'''
-        return [self.ACCOUNT, self.DATETIME, self.MONTH_ID, self.BALANCE]
+        return [self.ID, self.ACCOUNT, self.DATETIME, self.MONTH_ID, self.BALANCE]
 
 
 @dataclass
@@ -84,6 +81,7 @@ class SchemaIncome:
     COMMENT: str = 'comment'
 
     # CALCULATED/CREATED
+    ID: str = 'id'
     DATETIME: str = 'date'
     MONTH_ID: str = 'month_id'
 
@@ -95,7 +93,7 @@ class SchemaIncome:
     @property
     def df_columns_final(self) -> List[str]:
         '''provides all the columns in necessary order for correct exporting of dataframe'''
-        return [self.TYPE, self.DATETIME, self.MONTH_ID, self.AMOUNT]
+        return [self.ID, self.TYPE, self.DATETIME, self.MONTH_ID, self.AMOUNT]
 
 
 @dataclass
@@ -107,6 +105,7 @@ class SchemaInvestmentVariable:
     DATETIME: str = 'date'
 
     # CALCULATED/CREATED
+    ID: str = 'id'
     MONTH_ID: str = 'month_id'
     VALUE: str = 'value'
 
@@ -118,7 +117,7 @@ class SchemaInvestmentVariable:
     @property
     def df_columns_final(self) -> List[str]:
         '''provides all the columns in necessary order for correct exporting of dataframe'''
-        return [self.NAME, self.DATETIME, self.MONTH_ID, self.COMPANY, self.UNIT_PRICE, self.UNITS_OWNED, self.VALUE]
+        return [self.ID, self.NAME, self.DATETIME, self.MONTH_ID, self.COMPANY, self.UNIT_PRICE, self.UNITS_OWNED, self.VALUE]
 
 
 @dataclass
@@ -131,6 +130,7 @@ class SchemaInvestmentFixed:
     MATURITY_DATE: str = 'maturity_date'
 
     # CALCULATED/CREATED
+    ID: str = 'id'
     RETURN: str = 'return'
 
     @property
@@ -141,7 +141,7 @@ class SchemaInvestmentFixed:
     @property
     def df_columns_final(self) -> List[str]:
         '''provides all the columns in necessary order for correct exporting of dataframe'''
-        return [self.NAME, self.COMPANY, self.AMOUNT, self.INTEREST, self.DURATION, self.MATURITY_DATE, self.RETURN]
+        return [self.ID, self.NAME, self.COMPANY, self.AMOUNT, self.INTEREST, self.DURATION, self.MATURITY_DATE, self.RETURN]
 
 
 class Budget:
@@ -153,6 +153,15 @@ class Budget:
         extract_MMM_YY = lambda x: datetime.strftime(x, self.MONTH_FORMAT).upper()
 
         return df[self.SCHEMA.DATETIME].apply(extract_MMM_YY)
+
+    def add_id_column(self, df: pd.DataFrame) -> pd.Series:
+        '''adds id column to existing dataframe based on month_id and index. To be used as primary key'''
+
+        df = df.reset_index(drop=True).reset_index(names='idx')
+        df.idx = df.idx.astype(str).str.zfill(4)
+
+        return df[self.SCHEMA.MONTH_ID] + ' ' + df.idx
+
 
 
 class Monzo(Budget):
@@ -168,8 +177,8 @@ class Monzo(Budget):
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.CATEGORY] = self.add_category_column(df)
-
         df = self.split_subcategory_payments(df)
+        df[self.SCHEMA.ID] = self.add_id_column(df)
 
         df = df[self.SCHEMA.df_columns_final]
 
@@ -218,7 +227,6 @@ class Monzo(Budget):
 
                 subcategory, value = tuple(subcategory_value.split(':'))
                 new_row = row
-                new_row[self.SCHEMA.ID] = 'tx_0000AT' + ''.join(random.sample(string.ascii_letters + string.digits, 16))
                 new_row[self.SCHEMA.SUBCATEGORY] = subcategory
                 new_row[self.SCHEMA.SUBCATEGORY_SPLIT] = np.nan
 
@@ -244,6 +252,7 @@ class Accounts(Budget):
 
         df = self.add_datetime_column(df)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
+        df[self.SCHEMA.ID] = self.add_id_column(df)
         df = df[self.SCHEMA.df_columns_final]
 
         return df
@@ -254,7 +263,7 @@ class Accounts(Budget):
         dt_idx = df.index[df[self.SCHEMA.ACCOUNT] == 'date']
         date = df.iloc[dt_idx][self.SCHEMA.BALANCE].values[0]
         df[self.SCHEMA.DATETIME] = datetime.strptime(date, self.DATETIME_FORMAT)
-        df = df.drop(dt_idx, axis=0)
+        df = df.drop(dt_idx, axis=0).reset_index(drop=True)
 
         return df
 
@@ -271,6 +280,7 @@ class Income(Budget):
 
         df = self.add_datetime_column(df)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
+        df[self.SCHEMA.ID] = self.add_id_column(df)
         df = df[self.SCHEMA.df_columns_final]
 
         return df
@@ -281,7 +291,7 @@ class Income(Budget):
         dt_idx = df.index[df[self.SCHEMA.TYPE] == 'date']
         date = df.iloc[dt_idx][self.SCHEMA.AMOUNT].values[0]
         df[self.SCHEMA.DATETIME] = datetime.strptime(date, self.DATETIME_FORMAT)
-        df = df.drop(dt_idx, axis=0)
+        df = df.drop(dt_idx, axis=0).reset_index(drop=True)
 
         return df
 
@@ -297,6 +307,7 @@ class InvestmentVariable(Budget):
 
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
+        df[self.SCHEMA.ID] = self.add_id_column(df)
         df[self.SCHEMA.VALUE] = self.add_value_column(df)
         df = df[self.SCHEMA.df_columns_final]
 
@@ -324,6 +335,7 @@ class InvestmentFixed(Budget):
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df[self.SCHEMA.RETURN] = self.add_return_column(df)
+        df[self.SCHEMA.ID] = self.add_id_column(df)
         df = df[self.SCHEMA.df_columns_final]
 
         return df
@@ -333,6 +345,9 @@ class InvestmentFixed(Budget):
         df['duration_yrs'] = df[self.SCHEMA.DURATION]//12 + (df[self.SCHEMA.DURATION]%12)/12
         rtn = df['duration_yrs'] * df[self.SCHEMA.AMOUNT] * (df[self.SCHEMA.INTEREST]/100)
         return rtn.round(2)
+
+    def add_id_column(self, df: pd.DataFrame) -> pd.Series:
+        return df[self.SCHEMA.NAME].astype(str) + df[self.SCHEMA.COMPANY].astype(str) + df[self.SCHEMA.AMOUNT].astype(str) + df[self.SCHEMA.INTEREST].astype(str) + df[self.SCHEMA.DURATION].astype(str) + df[self.SCHEMA.MATURITY_DATE].astype(str)
 
 # example
 mz = Monzo()
