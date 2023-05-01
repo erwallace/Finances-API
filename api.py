@@ -11,34 +11,33 @@ import logging
 import log
 
 # TODO: how am I going to add in rent?
-# TODO: fillna(0) for all, otherwise we miss values when creating tables
-# TODO: input all values in pennies so that they are all integers
+
 
 @dataclass
 class SchemaMonzo:
     ID: str = 'id'
-    DATE: str = 'date'
-    TIME: str = 'time'
-    TYPE: str = 'type'
-    NAME: str = 'name'
-    EMOJI: str = 'emoji'
-    SUBCATEGORY: str = 'subcategory'
-    AMOUNT: str = 'amount'
-    CURRENCY: str = 'currency'
-    LOCAL_AMOUNT: str = 'local_amount'
-    LOCAL_CURRENCY: str = 'local_currency'
-    NOTES: str = 'notes'
-    ADDRESS: str = 'address'
-    RECEIPT: str = 'receipt'
-    DESCRIPTION: str = 'description'
-    SUBCATEGORY_SPLIT: str = 'subcategory_split'
-    OUT: str = 'out'
-    IN: str = 'in'
+    DATE: str = 'Date'
+    TIME: str = 'Time'
+    TYPE: str = 'Type'
+    NAME: str = 'Name'
+    EMOJI: str = 'Emoji'
+    SUBCATEGORY: str = 'Subcategory'
+    AMOUNT: str = 'Amount'
+    CURRENCY: str = 'Currency'
+    LOCAL_AMOUNT: str = 'Local Amount'
+    LOCAL_CURRENCY: str = 'Local Currency'
+    NOTES: str = 'Notes'
+    ADDRESS: str = 'Address'
+    RECEIPT: str = 'Receipt'
+    DESCRIPTION: str = 'Description'
+    SUBCATEGORY_SPLIT: str = 'Subcategory Split'
+    OUT: str = 'Out'
+    IN: str = 'In'
 
     # CALCULATED/CREATED
-    DATETIME: str = 'date'
+    DATETIME: str = 'Date'
     MONTH_ID: str = 'month_id'
-    CATEGORY: str = 'category'
+    CATEGORY: str = 'Category'
 
     @property
     def df_columns_initial(self) -> List[str]:
@@ -56,15 +55,15 @@ class SchemaMonzo:
 
 @dataclass
 class SchemaBudget:
-    SUBCATEGORY: str = 'subcategory'
-    BUDGET: str = 'budget'
-    COMMENT: str = 'comment'
+    SUBCATEGORY: str = 'Subcategory'
+    BUDGET: str = 'Budget'
+    COMMENT: str = 'Comment'
 
     # CALCULATED/CREATED
     ID: str = 'id'
-    DATETIME: str = 'date'
+    DATETIME: str = 'Date'
     MONTH_ID: str = 'month_id'
-    CATEGORY: str = 'category'
+    CATEGORY: str = 'Category'
 
     @property
     def df_columns_initial(self) -> List[str]:
@@ -79,13 +78,13 @@ class SchemaBudget:
 
 @dataclass
 class SchemaAccounts:
-    ACCOUNT: str = 'account'
-    BALANCE: str = 'balance'
-    COMMENT: str = 'comment'
+    ACCOUNT: str = 'Account'
+    BALANCE: str = 'Balance'
+    COMMENT: str = 'Comment'
 
     # CALCULATED/CREATED
     ID: str = 'id'
-    DATETIME: str = 'date'
+    DATETIME: str = 'Date'
     MONTH_ID: str = 'month_id'
 
     @property
@@ -101,13 +100,13 @@ class SchemaAccounts:
 
 @dataclass
 class SchemaIncome:
-    TYPE: str = 'type'
-    AMOUNT: str = 'amount'
-    COMMENT: str = 'comment'
+    TYPE: str = 'Type'
+    AMOUNT: str = 'Amount'
+    COMMENT: str = 'Comment'
 
     # CALCULATED/CREATED
     ID: str = 'id'
-    DATETIME: str = 'date'
+    DATETIME: str = 'Date'
     MONTH_ID: str = 'month_id'
 
     @property
@@ -123,16 +122,16 @@ class SchemaIncome:
 
 @dataclass
 class SchemaInvestmentVariable:
-    NAME: str = 'name'
-    COMPANY: str = 'company'
-    UNIT_PRICE: str = 'unit_price'
-    UNITS_OWNED: str = 'units_owned'
-    DATETIME: str = 'date'
+    NAME: str = 'Name'
+    COMPANY: str = 'Company'
+    UNIT_PRICE: str = 'Unit Price'
+    UNITS_OWNED: str = 'Units Owned'
+    DATETIME: str = 'Date'
 
     # CALCULATED/CREATED
     ID: str = 'id'
     MONTH_ID: str = 'month_id'
-    VALUE: str = 'value'
+    VALUE: str = 'Value'
 
     @property
     def df_columns_initial(self) -> List[str]:
@@ -147,17 +146,17 @@ class SchemaInvestmentVariable:
 
 @dataclass
 class SchemaInvestmentFixed:
-    NAME: str = 'name'
-    COMPANY: str = 'company'
-    AMOUNT: str = 'amount'
-    INTEREST: str = 'interest_%'
-    DURATION: str = 'duration_months'
-    PURCHASE_DATE: str = 'purchase_date'
-    MATURITY_DATE: str = 'maturity_date'
+    NAME: str = 'Name'
+    COMPANY: str = 'Company'
+    AMOUNT: str = 'Amount'
+    INTEREST: str = 'Interest (%)'
+    DURATION: str = 'Months'
+    PURCHASE_DATE: str = 'Purchased'
+    MATURITY_DATE: str = 'Matures'
 
     # CALCULATED/CREATED
     ID: str = 'id'
-    RETURN: str = 'return'
+    RETURN: str = 'Return'
 
     @property
     def df_columns_initial(self) -> List[str]:
@@ -188,6 +187,11 @@ class Finances:
 
         return df[self.SCHEMA.MONTH_ID] + ' ' + df.idx
 
+    def convert_to_pennies(self, col: pd.Series) -> pd.Series:
+        '''converts all money to pennies so that it can be stored as an integer'''
+        col = col*100
+
+        return col.fillna(0).astype(int)
 
 
 class Monzo(Finances):
@@ -204,6 +208,8 @@ class Monzo(Finances):
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.CATEGORY] = self.add_category_column(df)
         df = self.split_subcategory_payments(df)
+        df[self.SCHEMA.IN] = self.convert_to_pennies(df[self.SCHEMA.IN])
+        df[self.SCHEMA.OUT] = self.convert_to_pennies(df[self.SCHEMA.OUT])
         df[self.SCHEMA.ID] = self.add_id_column(df)
 
         df = df[self.SCHEMA.df_columns_final]
@@ -280,6 +286,8 @@ class Budget(Finances):
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
         df[self.SCHEMA.CATEGORY] = self.add_category_column(df)
+        df[self.SCHEMA.BUDGET] = self.convert_to_pennies(df[self.SCHEMA.BUDGET])
+
         df = df[self.SCHEMA.df_columns_final]
 
         return df
@@ -325,6 +333,8 @@ class Accounts(Finances):
         df = self.add_datetime_column(df)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
+        df[self.SCHEMA.BALANCE] = self.convert_to_pennies(df[self.SCHEMA.BALANCE])
+
         df = df[self.SCHEMA.df_columns_final]
 
         return df
@@ -353,6 +363,8 @@ class Income(Finances):
         df = self.add_datetime_column(df)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
+        df[self.SCHEMA.AMOUNT] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
+
         df = df[self.SCHEMA.df_columns_final]
 
         return df
@@ -381,6 +393,7 @@ class InvestmentVariable(Finances):
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
         df[self.SCHEMA.VALUE] = self.add_value_column(df)
+
         df = df[self.SCHEMA.df_columns_final]
 
         return df
@@ -406,8 +419,10 @@ class InvestmentFixed(Finances):
         '''loads investments_fixed file and returns as pandas dataframe'''
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
+        df[self.SCHEMA.AMOUNT] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
         df[self.SCHEMA.RETURN] = self.add_return_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
+
         df = df[self.SCHEMA.df_columns_final]
 
         return df
@@ -416,7 +431,7 @@ class InvestmentFixed(Finances):
 
         df['duration_yrs'] = df[self.SCHEMA.DURATION]//12 + (df[self.SCHEMA.DURATION]%12)/12
         rtn = df['duration_yrs'] * df[self.SCHEMA.AMOUNT] * (df[self.SCHEMA.INTEREST]/100)
-        return rtn.round(2)
+        return rtn.astype(int)
 
     def add_id_column(self, df: pd.DataFrame) -> pd.Series:
         return df[self.SCHEMA.NAME].astype(str) + df[self.SCHEMA.COMPANY].astype(str) + df[self.SCHEMA.AMOUNT].astype(str) + df[self.SCHEMA.INTEREST].astype(str) + df[self.SCHEMA.DURATION].astype(str) + df[self.SCHEMA.MATURITY_DATE].astype(str)

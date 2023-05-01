@@ -27,7 +27,7 @@ class SQL:
             conn.execute(
                 text('CREATE TABLE months ('
                      '"month_id" CHAR(6) PRIMARY KEY,'
-                     '"date" TIMESTAMP)'
+                     '"Date" TIMESTAMP)'
                      )
             )
         logging.info(f'table created: months')
@@ -40,15 +40,15 @@ class SQL:
                 text('CREATE TABLE spending_data ('
                      '"id" CHAR(11) PRIMARY KEY,'
                      '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"date" TIMESTAMP,'
-                     '"type" VARCHAR,'
-                     '"name" VARCHAR,'
-                     '"category" VARCHAR,'
-                     '"subcategory" VARCHAR,'
-                     '"address" VARCHAR,'
-                     '"description" VARCHAR,'
-                     '"out" DECIMAL(12,2),'
-                     '"in" DECIMAL(12,2))'
+                     '"Date" TIMESTAMP,'
+                     '"Type" VARCHAR,'
+                     '"Name" VARCHAR,'
+                     '"Category" VARCHAR,'
+                     '"Subcategory" VARCHAR,'
+                     '"Address" VARCHAR,'
+                     '"Description" VARCHAR,'
+                     '"Out" INTEGER,'
+                     '"In" INTEGER)'
                      )
             )
         logging.info(f'table created: spending_data')
@@ -61,10 +61,10 @@ class SQL:
                 text('CREATE TABLE budget ('
                      '"id" CHAR(11) PRIMARY KEY,'
                      '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"date" TIMESTAMP,'
-                     '"category" VARCHAR,'
-                     '"subcategory" VARCHAR,'
-                     '"budget" DECIMAL(12,2))'
+                     '"Date" TIMESTAMP,'
+                     '"Category" VARCHAR,'
+                     '"Subcategory" VARCHAR,'
+                     '"Budget" INTEGER)'
                      )
             )
         logging.info(f'table created: budget')
@@ -76,10 +76,10 @@ class SQL:
             conn.execute(
                 text('CREATE TABLE accounts ('
                      '"id" CHAR(11) PRIMARY KEY,'
-                     '"account" VARCHAR,'
-                     '"date" TIMESTAMP,'
+                     '"Account" VARCHAR,'
+                     '"Date" TIMESTAMP,'
                      '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"balance" DECIMAL(12,2))'
+                     '"Balance" INTEGER)'
                      )
             )
         logging.info(f'table created: accounts')
@@ -91,10 +91,10 @@ class SQL:
             conn.execute(
                 text('CREATE TABLE income ('
                      '"id" CHAR(11) PRIMARY KEY,'
-                     '"type" VARCHAR,'
-                     '"date" TIMESTAMP,'
+                     '"Type" VARCHAR,'
+                     '"Date" TIMESTAMP,'
                      '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"amount" DECIMAL(12,2))'
+                     '"Amount" INTEGER)'
                      )
             )
         logging.info(f'table created: income')
@@ -106,13 +106,13 @@ class SQL:
             conn.execute(
                 text('CREATE TABLE investments_variable ('
                      '"id" CHAR(11) PRIMARY KEY,'
-                     '"name" VARCHAR,'
-                     '"date" TIMESTAMP,'
+                     '"Name" VARCHAR,'
+                     '"Date" TIMESTAMP,'
                      '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"company" VARCHAR,'
-                     '"unit_price" NUMERIC,'
-                     '"units_owned" NUMERIC,'
-                     '"value" DECIMAL(12,2))'
+                     '"Company" VARCHAR,'
+                     '"Unit Price" NUMERIC,'
+                     '"Units Owned" NUMERIC,'
+                     '"Value" DECIMAL(12,2))'
                      )
             )
         logging.info(f'table created: investments_variable')
@@ -124,14 +124,14 @@ class SQL:
             conn.execute(
                 text('CREATE TABLE investments_fixed ('
                      '"id" VARCHAR PRIMARY KEY,'
-                     '"name" VARCHAR,'
-                     '"company" VARCHAR,'
-                     '"amount" DECIMAL(12,2),'
-                     '"interest_%" NUMERIC,'
-                     '"duration_months" NUMERIC,'
-                     '"purchase_date" TIMESTAMP,'
-                     '"maturity_date" TIMESTAMP,'
-                     '"return" DECIMAL(12,2))'
+                     '"Name" VARCHAR,'
+                     '"Company" VARCHAR,'
+                     '"Amount" INTEGER,'
+                     '"Interest (%)" NUMERIC,'
+                     '"Months" NUMERIC,'
+                     '"Purchased" TIMESTAMP,'
+                     '"Matures" TIMESTAMP,'
+                     '"Return" INTEGER)'
                      )
             )
         logging.info(f'table created: investments_fixed')
