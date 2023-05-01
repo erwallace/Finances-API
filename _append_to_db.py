@@ -5,9 +5,13 @@ import logging
 sql = SQL()
 
 mz = Monzo()
-df_mz, months = mz.preprocess('statements/MonzoDataExport_March_2023-04-01_085048.csv')
+df_mz, months = mz.preprocess('statements/MonzoDataExport_January_2023-01-31_100153.csv')
 sql.append_to_db(months, 'months')
 sql.append_to_db(df_mz, 'spending_data')
+
+bud = Budget()
+df_bud = bud.preprocess()
+sql.append_to_db(df_bud, 'budget')
 
 acc = Accounts()
 df_acc = acc.preprocess()

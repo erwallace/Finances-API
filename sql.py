@@ -53,6 +53,22 @@ class SQL:
             )
         logging.info(f'table created: spending_data')
 
+    def create_budget(self):
+        """creates the SQL budget table in the database"""
+
+        with self.engine.begin() as conn:
+            conn.execute(
+                text('CREATE TABLE budget ('
+                     '"id" CHAR(11) PRIMARY KEY,'
+                     '"month_id" CHAR(6) REFERENCES months (month_id),'
+                     '"date" TIMESTAMP,'
+                     '"category" VARCHAR,'
+                     '"subcategory" VARCHAR,'
+                     '"budget" DECIMAL(12,2))'
+                     )
+            )
+        logging.info(f'table created: budget')
+
     def create_accounts(self):
         """creates the SQL accounts table in the database"""
 
@@ -113,6 +129,7 @@ class SQL:
                      '"amount" DECIMAL(12,2),'
                      '"interest_%" NUMERIC,'
                      '"duration_months" NUMERIC,'
+                     '"purchase_date" TIMESTAMP,'
                      '"maturity_date" TIMESTAMP,'
                      '"return" DECIMAL(12,2))'
                      )
@@ -122,6 +139,7 @@ class SQL:
     def create_all_tables(self):
         self.create_months()
         self.create_spending_data()
+        self.create_budget()
         self.create_accounts()
         self.create_income()
         self.create_investments_variable()
@@ -135,8 +153,7 @@ class SQL:
         logging.info(f'table deleted: {table_name}')
 
     def delete_all_tables(self):
-        ## NOT WORKING
-        tbls = ['spending_data', 'accounts', 'income', 'investments_variable', 'investments_fixed', 'months']
+        tbls = ['spending_data', 'budget', 'accounts', 'income', 'investments_variable', 'investments_fixed', 'months']
 
         for tbl in tbls:
             try:
@@ -148,12 +165,13 @@ class SQL:
         """check for duplicates and append to spending_data table in database"""
 
         # TODO: use schema values (?)
-        primary_keys = {'months': 'month_id',  # TODO: adding duplicate rows due to randomly generated id's from category split
+        primary_keys = {'months': 'month_id',
                         'spending_data': 'id',
+                        'budget': 'id',
                         'accounts': 'id',
                         'income': 'id',
                         'investments_variable': 'id',
-                        'investments_fixed': 'id'  # TODO: adding duplicated rows
+                        'investments_fixed': 'id'
                         }
         assert table_name in primary_keys.keys(), f'{table_name} is not a valid table name.'
         p_key = primary_keys[table_name]

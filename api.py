@@ -11,6 +11,8 @@ import logging
 import log
 
 # TODO: how am I going to add in rent?
+# TODO: fillna(0) for all, otherwise we miss values when creating tables
+# TODO: input all values in pennies so that they are all integers
 
 @dataclass
 class SchemaMonzo:
@@ -50,6 +52,29 @@ class SchemaMonzo:
         '''provides all the columns in necessary order for correct exporting of dataframe'''
         return [self.ID, self.MONTH_ID, self.DATETIME, self.TYPE, self.NAME, self.CATEGORY, self.SUBCATEGORY,
                 self.ADDRESS, self.DESCRIPTION, self.OUT, self.IN]
+
+
+@dataclass
+class SchemaBudget:
+    SUBCATEGORY: str = 'subcategory'
+    BUDGET: str = 'budget'
+    COMMENT: str = 'comment'
+
+    # CALCULATED/CREATED
+    ID: str = 'id'
+    DATETIME: str = 'date'
+    MONTH_ID: str = 'month_id'
+    CATEGORY: str = 'category'
+
+    @property
+    def df_columns_initial(self) -> List[str]:
+        '''provides all the columns in necessary order for correct extraction to dataframe'''
+        return [self.SUBCATEGORY, self.BUDGET, self.COMMENT]
+
+    @property
+    def df_columns_final(self) -> List[str]:
+        '''provides all the columns in necessary order for correct exporting of dataframe'''
+        return [self.ID, self.MONTH_ID, self.DATETIME, self.CATEGORY, self.SUBCATEGORY, self.BUDGET]
 
 
 @dataclass
@@ -127,6 +152,7 @@ class SchemaInvestmentFixed:
     AMOUNT: str = 'amount'
     INTEREST: str = 'interest_%'
     DURATION: str = 'duration_months'
+    PURCHASE_DATE: str = 'purchase_date'
     MATURITY_DATE: str = 'maturity_date'
 
     # CALCULATED/CREATED
@@ -136,15 +162,15 @@ class SchemaInvestmentFixed:
     @property
     def df_columns_initial(self) -> List[str]:
         '''provides all the columns in necessary order for correct extraction to dataframe'''
-        return [self.NAME, self.COMPANY, self.AMOUNT, self.INTEREST, self.DURATION, self.MATURITY_DATE]
+        return [self.NAME, self.COMPANY, self.AMOUNT, self.INTEREST, self.DURATION, self.PURCHASE_DATE, self.MATURITY_DATE]
 
     @property
     def df_columns_final(self) -> List[str]:
         '''provides all the columns in necessary order for correct exporting of dataframe'''
-        return [self.ID, self.NAME, self.COMPANY, self.AMOUNT, self.INTEREST, self.DURATION, self.MATURITY_DATE, self.RETURN]
+        return [self.ID, self.NAME, self.COMPANY, self.AMOUNT, self.INTEREST, self.DURATION, self.PURCHASE_DATE, self.MATURITY_DATE, self.RETURN]
 
 
-class Budget:
+class Finances:
     MONTH_FORMAT: str = '%b %y'
 
     def add_month_id_column(self, df: pd.DataFrame) -> pd.Series:
@@ -164,7 +190,7 @@ class Budget:
 
 
 
-class Monzo(Budget):
+class Monzo(Finances):
     DATETIME_FORMAT: str = '%d/%m/%Y %H:%M:%S'
     SKIPROWS: int = 1
     SCHEMA: SchemaMonzo = SchemaMonzo()
@@ -210,7 +236,7 @@ class Monzo(Budget):
         df_subcategories = set(df[self.SCHEMA.SUBCATEGORY])
         json_subcategories = set(sub_category.keys())
         diff = df_subcategories.difference(json_subcategories)
-        assert diff != {}, f'Monzo statement contains subcategories missing from sub_category.json ({diff})'
+        assert diff == set(), f'Monzo statement contains subcategories missing from sub_category.json ({diff})'
 
         return df[self.SCHEMA.SUBCATEGORY].map(sub_category)
 
@@ -240,7 +266,53 @@ class Monzo(Budget):
         return df_keep.reset_index(drop=True)
 
 
-class Accounts(Budget):
+class Budget(Finances):
+    DATETIME_FORMAT: str = '%d/%m/%Y'
+    SKIPROWS: int = 1
+    SCHEMA: SchemaBudget = SchemaBudget()
+
+    def preprocess(self, log_file='inputs/budget.csv') -> pd.DataFrame:
+        '''loads budget file and returns as pandas dataframe'''
+
+        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+
+        df = self.add_datetime_column(df)
+        df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
+        df[self.SCHEMA.ID] = self.add_id_column(df)
+        df[self.SCHEMA.CATEGORY] = self.add_category_column(df)
+        df = df[self.SCHEMA.df_columns_final]
+
+        return df
+
+    def add_datetime_column(self, df: pd.DataFrame) -> pd.DataFrame:
+        '''adds datetime column to existing dataframe based on date row, then remove that row'''
+
+        dt_idx = df.index[df[self.SCHEMA.SUBCATEGORY] == 'date']
+        date = df.iloc[dt_idx][self.SCHEMA.BUDGET].values[0]
+        df[self.SCHEMA.DATETIME] = datetime.strptime(date, self.DATETIME_FORMAT)
+        df = df.drop(dt_idx, axis=0).reset_index(drop=True)
+
+        return df
+
+    def add_category_column(self, df: pd.DataFrame) -> pd.Series:
+        '''adds category column to existing dataframe based on subcategory column and json mapping'''
+
+        # read in configurations from json
+        with open("sub_category.json") as jsn:
+            mapper = jsn.read()
+
+        # decoding the JSON to dictionary
+        sub_category = json.loads(mapper)
+
+        df_subcategories = set(df[self.SCHEMA.SUBCATEGORY])
+        json_subcategories = set(sub_category.keys())
+        diff = df_subcategories.difference(json_subcategories)
+        assert diff == set(), f'Monzo statement contains subcategories missing from sub_category.json ({diff})'
+
+        return df[self.SCHEMA.SUBCATEGORY].map(sub_category)
+
+
+class Accounts(Finances):
     DATETIME_FORMAT: str = '%d/%m/%Y'
     SKIPROWS: int = 1
     SCHEMA: SchemaAccounts = SchemaAccounts()
@@ -268,7 +340,7 @@ class Accounts(Budget):
         return df
 
 
-class Income(Budget):
+class Income(Finances):
     DATETIME_FORMAT: str = '%d/%m/%Y'
     SKIPROWS: int = 1
     SCHEMA: SchemaIncome = SchemaIncome()
@@ -296,7 +368,7 @@ class Income(Budget):
         return df
 
 
-class InvestmentVariable(Budget):
+class InvestmentVariable(Finances):
     DATETIME_FORMAT: str = '%d/%m/%Y'
     SKIPROWS: int = 1
     SCHEMA: SchemaInvestmentVariable = SchemaInvestmentVariable()
@@ -326,10 +398,10 @@ class InvestmentVariable(Budget):
         return val.round(2)
 
 
-class InvestmentFixed(Budget):
+class InvestmentFixed(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInvestmentFixed = SchemaInvestmentFixed()
-
+    # TODO: only need to of duration, purchase date and maturity date. Should calculate the 3rd
     def preprocess(self, log_file='inputs/investments_fixed.csv') -> pd.DataFrame:
         '''loads investments_fixed file and returns as pandas dataframe'''
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
