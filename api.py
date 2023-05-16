@@ -239,7 +239,7 @@ class Monzo(Finances):
 
         months = df[self.SCHEMA.MONTH_ID].unique()
         dt = [datetime.strptime(m, self.MONTH_FORMAT) for m in months]
-        months = pd.DataFrame({self.SCHEMA.MONTH_ID: months,
+        months = pd.DataFrame({self.SCHEMA.ID: months,
                                self.SCHEMA.DATETIME: dt})
 
         return df, months

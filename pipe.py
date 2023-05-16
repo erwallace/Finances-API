@@ -31,7 +31,7 @@ class pipeline:
         mz = Monzo(month_id)
         df_mz, months = mz.preprocess()
         sql.append_to_db(months, 'months')
-        sql.append_to_db(df_mz, 'spending_data')
+        sql.append_to_db(df_mz, 'spending')
 
         bud = Budget(month_id)
         df_bud = bud.preprocess()

@@ -1,159 +1,202 @@
-from sqlalchemy import text, create_engine
+from sqlalchemy import text, create_engine, Column, String, DateTime, Integer, Float, ForeignKey, select, inspect, Table
+from sqlalchemy.orm import declarative_base, sessionmaker
 import pandas as pd
 import logging
 import log
 import psycopg2
+from api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
+
+Base = declarative_base()
+
+
+class MonthsTbl(Base):
+
+    __tablename__ = 'months'
+    SCHEMA = SchemaMonzo()
+
+    id = Column(String, primary_key=True)
+    locals()[SCHEMA.DATETIME] = Column(DateTime)
+
+    def __repr__(self):
+        return f'<SpendingTbl({self.SCHEMA.MONTH_ID}={getattr(self, self.SCHEMA.MONTH_ID)},' \
+               f'{self.SCHEMA.DATETIME}={getattr(self, self.SCHEMA.DATETIME)})>'
+
+
+class SpendingTbl(Base):
+    __tablename__ = 'spending'
+    SCHEMA = SchemaMonzo()
+
+    id = Column(String, primary_key=True)
+    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.DATETIME] = Column(DateTime)
+    locals()[SCHEMA.TYPE] = Column(String)
+    locals()[SCHEMA.NAME] = Column(String)
+    locals()[SCHEMA.CATEGORY] = Column(String)  # category
+    locals()[SCHEMA.SUBCATEGORY] = Column(String)  # category
+    locals()[SCHEMA.ADDRESS] = Column(String)
+    locals()[SCHEMA.DESCRIPTION] = Column(String)
+    locals()[SCHEMA.OUT] = Column(Integer)
+    locals()[SCHEMA.IN] = Column(Integer)
+
+    def __repr__(self):
+        return f'<SpendingTbl({self.SCHEMA.ID}={getattr(self, self.SCHEMA.ID)},' \
+               f'{self.SCHEMA.MONTH_ID}={getattr(self, self.SCHEMA.MONTH_ID)},' \
+               f'{self.SCHEMA.DATETIME}={getattr(self, self.SCHEMA.DATETIME)},' \
+               f'{self.SCHEMA.TYPE}={getattr(self, self.SCHEMA.TYPE)},' \
+               f'{self.SCHEMA.NAME}={getattr(self, self.SCHEMA.NAME)},' \
+               f'{self.SCHEMA.CATEGORY}={getattr(self, self.SCHEMA.CATEGORY)},' \
+               f'{self.SCHEMA.SUBCATEGORY}={getattr(self, self.SCHEMA.SUBCATEGORY)},' \
+               f'{self.SCHEMA.ADDRESS}={getattr(self, self.SCHEMA.ADDRESS)},' \
+               f'{self.SCHEMA.DESCRIPTION}={getattr(self, self.SCHEMA.DESCRIPTION)},' \
+               f'{self.SCHEMA.OUT}={getattr(self, self.SCHEMA.OUT)},' \
+               f'{self.SCHEMA.IN}={getattr(self, self.SCHEMA.IN)})>'
+
+
+class BudgetTbl(Base):
+    __tablename__ = 'budget'
+    SCHEMA = SchemaBudget()
+
+    id = Column(String, primary_key=True)
+    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.DATETIME] = Column(DateTime)
+    locals()[SCHEMA.CATEGORY] = Column(String)
+    locals()[SCHEMA.SUBCATEGORY] = Column(String)
+    locals()[SCHEMA.BUDGET] = Column(Integer)
+
+    def __repr__(self):
+        return f'<BudgetTbl({self.SCHEMA.ID}={getattr(self, self.SCHEMA.ID)},' \
+               f'{self.SCHEMA.MONTH_ID}={getattr(self, self.SCHEMA.MONTH_ID)},' \
+               f'{self.SCHEMA.DATETIME}={getattr(self, self.SCHEMA.DATETIME)},' \
+               f'{self.SCHEMA.CATEGORY}={getattr(self, self.SCHEMA.CATEGORY)},' \
+               f'{self.SCHEMA.SUBCATEGORY}={getattr(self, self.SCHEMA.SUBCATEGORY)},' \
+               f'{self.SCHEMA.BUDGET}={getattr(self, self.SCHEMA.BUDGET)})>'
+
+
+class AccountsTbl(Base):
+    __tablename__ = 'accounts'
+    SCHEMA = SchemaAccounts()
+
+    id = Column(String, primary_key=True)
+    locals()[SCHEMA.ACCOUNT] = Column(String)
+    locals()[SCHEMA.DATETIME] = Column(DateTime)
+    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.BALANCE] = Column(Integer)
+
+    def __repr__(self):
+        return f'<AccountsTbl({self.SCHEMA.ID}={getattr(self, self.SCHEMA.ID)},' \
+               f'{self.SCHEMA.ACCOUNT}={getattr(self, self.SCHEMA.ACCOUNT)},' \
+               f'{self.SCHEMA.DATETIME}={getattr(self, self.SCHEMA.DATETIME)},' \
+               f'{self.SCHEMA.MONTH_ID}={getattr(self, self.SCHEMA.MONTH_ID)},' \
+               f'{self.SCHEMA.BALANCE}={getattr(self, self.SCHEMA.BALANCE)})>'
+
+
+class IncomeTbl(Base):
+    __tablename__ = 'income'
+    SCHEMA = SchemaIncome
+
+    id = Column(String, primary_key=True)
+    locals()[SCHEMA.TYPE] = Column(String)
+    locals()[SCHEMA.DATETIME] = Column(DateTime)
+    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.AMOUNT] = Column(Integer)
+
+    def __repr__(self):
+        return f'<IncomeTbl({self.SCHEMA.ID}={getattr(self, self.SCHEMA.ID)},' \
+               f'{self.SCHEMA.TYPE}={getattr(self, self.SCHEMA.TYPE)},' \
+               f'{self.SCHEMA.DATETIME}={getattr(self, self.SCHEMA.DATETIME)},' \
+               f'{self.SCHEMA.MONTH_ID}={getattr(self, self.SCHEMA.MONTH_ID)},' \
+               f'{self.SCHEMA.AMOUNT}={getattr(self, self.SCHEMA.AMOUNT)})>'
+
+
+class InvestmentsVariableTbl(Base):
+    __tablename__ = 'investments_variable'
+    SCHEMA = SchemaInvestmentVariable()
+
+    id = Column(String, primary_key=True)
+    locals()[SCHEMA.NAME] = Column(String)
+    locals()[SCHEMA.DATETIME] = Column(DateTime)
+    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.COMPANY] = Column(String)
+    locals()[SCHEMA.UNIT_PRICE] = Column(Float)
+    locals()[SCHEMA.UNITS_OWNED] = Column(Float)
+    locals()[SCHEMA.VALUE] = Column(Float)
+
+    def __repr__(self):
+        return f'<InvestmentsVariableTbl({self.SCHEMA.ID}={getattr(self, self.SCHEMA.ID)},' \
+               f'{self.SCHEMA.NAME}={getattr(self, self.SCHEMA.NAME)},' \
+               f'{self.SCHEMA.DATETIME}={getattr(self, self.SCHEMA.DATETIME)},' \
+               f'{self.SCHEMA.MONTH_ID}={getattr(self, self.SCHEMA.MONTH_ID)},' \
+               f'{self.SCHEMA.COMPANY}={getattr(self, self.SCHEMA.COMPANY)},' \
+               f'{self.SCHEMA.UNIT_PRICE}={getattr(self, self.SCHEMA.UNIT_PRICE)},' \
+               f'{self.SCHEMA.UNITS_OWNED}={getattr(self, self.SCHEMA.UNITS_OWNED)},' \
+               f'{self.SCHEMA.VALUE}={getattr(self, self.SCHEMA.VALUE)})>'
+
+
+class InvestmentsFixedTbl(Base):
+    __tablename__ = 'investments_fixed'
+    SCHEMA = SchemaInvestmentFixed()
+
+    id = Column(String, primary_key=True)
+    locals()[SCHEMA.NAME] = Column(String)
+    locals()[SCHEMA.COMPANY] = Column(String)
+    locals()[SCHEMA.AMOUNT] = Column(Integer)
+    locals()[SCHEMA.INTEREST] = Column(Float)
+    locals()[SCHEMA.DURATION] = Column(Integer)
+    locals()[SCHEMA.PURCHASE_DATE] = Column(DateTime)
+    locals()[SCHEMA.MATURITY_DATE] = Column(DateTime)
+    locals()[SCHEMA.RETURN] = Column(Integer)
+
+    def __repr__(self):
+        return f'<InvestmentsFixed({self.SCHEMA.ID}={getattr(self, self.SCHEMA.ID)},' \
+               f'{self.SCHEMA.NAME}={getattr(self, self.SCHEMA.NAME)},' \
+               f'{self.SCHEMA.COMPANY}={getattr(self, self.SCHEMA.COMPANY)},' \
+               f'{self.SCHEMA.AMOUNT}={getattr(self, self.SCHEMA.AMOUNT)},' \
+               f'{self.SCHEMA.INTEREST}={getattr(self, self.SCHEMA.INTEREST)},' \
+               f'{self.SCHEMA.DURATION}={getattr(self, self.SCHEMA.DURATION)},' \
+               f'{self.SCHEMA.PURCHASE_DATE}={getattr(self, self.SCHEMA.PURCHASE_DATE)},' \
+               f'{self.SCHEMA.MATURITY_DATE}={getattr(self, self.SCHEMA.MATURITY_DATE)},' \
+               f'{self.SCHEMA.RETURN}={getattr(self, self.SCHEMA.RETURN)})>'
 
 
 class SQL:
 
-    def __init__(self, address='postgresql://postgres:zeropetroleum@localhost:5432/pybudget'):
+    def __init__(self, address='sqlite:///spending.db'):
 
-        '''
-        address = postgresql://username:password@hostname:5432/db_name
-
-        username: postgres
-        password: zeropetroleum
-        hostname: localhost
-        db_name: pybudget
-        '''
         self.engine = create_engine(address)
+        self.Session = sessionmaker(bind=self.engine)
         logging.info(f'SQL connection established to {address}')
 
-    def create_months(self):
-        """creates the SQL months table in the database"""
+    def create_table(self, table_name):
 
-        with self.engine.begin() as conn:
-            conn.execute(
-                text('CREATE TABLE months ('
-                     '"month_id" CHAR(6) PRIMARY KEY,'
-                     '"Date" TIMESTAMP)'
-                     )
-            )
-        logging.info(f'table created: months')
+        table_name_to_class = {m.tables[0].name: m.class_ for m in Base.registry.mappers}
+        class_ = table_name_to_class[table_name]
 
-    def create_spending_data(self):
-        """creates the SQL spending_data table in the database"""
-
-        with self.engine.begin() as conn:
-            conn.execute(
-                text('CREATE TABLE spending_data ('
-                     '"id" CHAR(11) PRIMARY KEY,'
-                     '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"Date" TIMESTAMP,'
-                     '"Type" VARCHAR,'
-                     '"Name" VARCHAR,'
-                     '"Category" VARCHAR,'
-                     '"Subcategory" VARCHAR,'
-                     '"Address" VARCHAR,'
-                     '"Description" VARCHAR,'
-                     '"Out" INTEGER,'
-                     '"In" INTEGER)'
-                     )
-            )
-        logging.info(f'table created: spending_data')
-
-    def create_budget(self):
-        """creates the SQL budget table in the database"""
-
-        with self.engine.begin() as conn:
-            conn.execute(
-                text('CREATE TABLE budget ('
-                     '"id" CHAR(11) PRIMARY KEY,'
-                     '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"Date" TIMESTAMP,'
-                     '"Category" VARCHAR,'
-                     '"Subcategory" VARCHAR,'
-                     '"Budget" INTEGER)'
-                     )
-            )
-        logging.info(f'table created: budget')
-
-    def create_accounts(self):
-        """creates the SQL accounts table in the database"""
-
-        with self.engine.begin() as conn:
-            conn.execute(
-                text('CREATE TABLE accounts ('
-                     '"id" CHAR(11) PRIMARY KEY,'
-                     '"Account" VARCHAR,'
-                     '"Date" TIMESTAMP,'
-                     '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"Balance" INTEGER)'
-                     )
-            )
-        logging.info(f'table created: accounts')
-
-    def create_income(self):
-        """creates the SQL income table in the database"""
-
-        with self.engine.begin() as conn:
-            conn.execute(
-                text('CREATE TABLE income ('
-                     '"id" CHAR(11) PRIMARY KEY,'
-                     '"Type" VARCHAR,'
-                     '"Date" TIMESTAMP,'
-                     '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"Amount" INTEGER)'
-                     )
-            )
-        logging.info(f'table created: income')
-
-    def create_investments_variable(self):
-        """creates the SQL investments_variable table in the database"""
-
-        with self.engine.begin() as conn:
-            conn.execute(
-                text('CREATE TABLE investments_variable ('
-                     '"id" CHAR(11) PRIMARY KEY,'
-                     '"Name" VARCHAR,'
-                     '"Date" TIMESTAMP,'
-                     '"month_id" CHAR(6) REFERENCES months (month_id),'
-                     '"Company" VARCHAR,'
-                     '"Unit Price" NUMERIC,'
-                     '"Units Owned" NUMERIC,'
-                     '"Value" DECIMAL(12,2))'
-                     )
-            )
-        logging.info(f'table created: investments_variable')
-
-    def create_investments_fixed(self):
-        """creates the SQL investments_fixed table in the database"""
-
-        with self.engine.begin() as conn:
-            conn.execute(
-                text('CREATE TABLE investments_fixed ('
-                     '"id" VARCHAR PRIMARY KEY,'
-                     '"Name" VARCHAR,'
-                     '"Company" VARCHAR,'
-                     '"Amount" INTEGER,'
-                     '"Interest (%)" NUMERIC,'
-                     '"Months" INTEGER,'
-                     '"Purchased" TIMESTAMP,'
-                     '"Matures" TIMESTAMP,'
-                     '"Return" INTEGER)'
-                     )
-            )
-        logging.info(f'table created: investments_fixed')
+        class_.__table__.create(bind=self.engine)
+        logging.info(f'table created: {table_name}')
 
     def create_all_tables(self):
-        self.create_months()
-        self.create_spending_data()
-        self.create_budget()
-        self.create_accounts()
-        self.create_income()
-        self.create_investments_variable()
-        self.create_investments_fixed()
+        ''' doc-string'''
+        tbls = ['months', 'spending', 'budget', 'accounts', 'income', 'investments_variable', 'investments_fixed']
+
+        for tbl in tbls:
+            try:
+                self.create_table(tbl)
+            except:
+                logging.warning(f'table already exists: {tbl}')
 
     def delete_table(self, table_name):
         """deletes a table from the pybudget"""
 
-        with self.engine.begin() as conn:
-            conn.execute(text('DROP TABLE ' + table_name))
+        assert table_name in inspect(self.engine).get_table_names(),  f'{table_name} is not a valid table name.'
+
+        table_name_to_class = {m.tables[0].name: m.class_ for m in Base.registry.mappers}
+        class_ = table_name_to_class[table_name]
+
+        class_.__table__.drop(self.engine)
         logging.info(f'table deleted: {table_name}')
 
     def delete_all_tables(self):
-        tbls = ['spending_data', 'budget', 'accounts', 'income', 'investments_variable', 'investments_fixed', 'months']
+        tbls = ['spending', 'budget', 'accounts', 'income', 'investments_variable', 'investments_fixed', 'months']
 
         for tbl in tbls:
             try:
@@ -162,25 +205,17 @@ class SQL:
                 logging.warning(f'table not found, cannot be deleted: {tbl}')
 
     def append_to_db(self, df: pd.DataFrame, table_name: str):
-        """check for duplicates and append to spending_data table in database"""
+        """check for duplicates and append to database"""
 
-        # TODO: use schema values (?)
-        primary_keys = {'months': 'month_id',
-                        'spending_data': 'id',
-                        'budget': 'id',
-                        'accounts': 'id',
-                        'income': 'id',
-                        'investments_variable': 'id',
-                        'investments_fixed': 'id'
-                        }
-        assert table_name in primary_keys.keys(), f'{table_name} is not a valid table name.'
-        p_key = primary_keys[table_name]
+        assert table_name in inspect(self.engine).get_table_names(),  f'{table_name} is not a valid table name.'
 
+        table_name_to_class = {m.tables[0].name: m.class_ for m in Base.registry.mappers}
+        class_ = table_name_to_class[table_name]
+
+        table = Table(class_.__tablename__, class_.metadata)
+        p_key = inspect(class_).primary_key[0].name
         with self.engine.connect() as conn:
-
-            db = pd.read_sql(sql=text(f'SELECT {p_key} FROM {table_name}'),
-                             con=conn
-                             )
+            db = pd.read_sql(sql=select(table.c.id), con=conn) # FROM is implicit
 
         # append non-duplicate rows
         non_duplicates = df[df[p_key].isin(db[p_key]) == False].dropna(how='all')
@@ -196,3 +231,6 @@ class SQL:
                               )
 
         logging.info(f'({non_duplicates.shape[0]}/{df.shape[0]}) rows from df appended to {table_name}')
+
+if __name__ == '__main__':
+    pass
