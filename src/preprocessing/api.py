@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-import io
 import os
 import json
 from typing import List
@@ -11,7 +10,7 @@ import pandas as pd
 import numpy as np
 
 import logging
-import log
+# import src.log
 
 
 @dataclass
@@ -214,15 +213,14 @@ class Monzo(Finances):
     def preprocess(self) -> tuple[pd.DataFrame, pd.DataFrame]:
         '''loads Monzo file and returns as pandas dataframe'''
 
-        cwd = os.getcwd()
-        log_folder = cwd + '\\statements'
+        log_folder = os.path.join(os.pardir, 'data', 'statements')
         dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
         month = datetime.strftime(dt, '%B')
         year = datetime.strftime(dt, '%Y')
         file = fnmatch.filter(os.listdir(log_folder), f'MonzoDataExport_{month}_{year}*.csv')
         assert len(file) != 0, f'No files found in cwd matching MonzoDataExport_{month}_{year}*.csv'
         assert len(file) == 1, f'More than one file matches MonzoDataExport_{month}_{year}*.csv - {file}'
-        log_file = log_folder + '\\' + file[0]
+        log_file = os.path.join(log_folder, file[0])
 
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
@@ -304,7 +302,7 @@ class Budget(Finances):
     def preprocess(self) -> pd.DataFrame:
         '''loads budget file and returns as pandas dataframe'''
 
-        log_file = f'inputs/budget_{self.month_id.replace(" ", "_")}.csv'
+        log_file = os.path.join(os.pardir, 'data', 'inputs', f'budget_{self.month_id.replace(" ", "_")}.csv')
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df = self.add_datetime_column(df)
@@ -353,7 +351,7 @@ class Accounts(Finances):
     def preprocess(self) -> pd.DataFrame:
         '''loads accounts file and returns as pandas dataframe'''
 
-        log_file = f'inputs/accounts_{self.month_id.replace(" ", "_")}.csv'
+        log_file = os.path.join(os.pardir, 'data', 'inputs', f'accounts_{self.month_id.replace(" ", "_")}.csv')
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df = self.add_datetime_column(df)
@@ -384,7 +382,7 @@ class Income(Finances):
     def preprocess(self) -> pd.DataFrame:
         '''loads income file and returns as pandas dataframe'''
 
-        log_file = f'inputs/income_{self.month_id.replace(" ", "_")}.csv'
+        log_file = os.path.join(os.pardir, 'data', 'inputs', f'income_{self.month_id.replace(" ", "_")}.csv')
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df = self.add_datetime_column(df)
@@ -415,7 +413,7 @@ class InvestmentVariable(Finances):
     def preprocess(self) -> pd.DataFrame:
         '''loads investments_variable file and returns as pandas dataframe'''
 
-        log_file = f'inputs/investments_variable_{self.month_id.replace(" ", "_")}.csv'
+        log_file = os.path.join(os.pardir, 'data', 'inputs', f'investments_variable_{self.month_id.replace(" ", "_")}.csv')
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df)
@@ -448,7 +446,7 @@ class InvestmentFixed(Finances):
     def preprocess(self) -> pd.DataFrame:
         '''loads investments_fixed file and returns as pandas dataframe'''
 
-        log_file = 'inputs/investments_fixed.csv'
+        log_file = os.path.join(os.pardir, 'data', 'inputs', 'investments_fixed.csv')
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df[self.SCHEMA.AMOUNT] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
@@ -468,3 +466,5 @@ class InvestmentFixed(Finances):
     def add_id_column(self, df: pd.DataFrame) -> pd.Series:
         return df[self.SCHEMA.NAME].astype(str) + df[self.SCHEMA.COMPANY].astype(str) + df[self.SCHEMA.AMOUNT].astype(str) + df[self.SCHEMA.INTEREST].astype(str) + df[self.SCHEMA.DURATION].astype(str) + df[self.SCHEMA.MATURITY_DATE].astype(str)
 
+if __name__ == '__main__':
+    pass

@@ -2,9 +2,10 @@ from sqlalchemy import text, create_engine, Column, String, DateTime, Integer, F
 from sqlalchemy.orm import declarative_base, sessionmaker
 import pandas as pd
 import logging
-import log
 import psycopg2
 from api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
+
+# import src.log
 
 Base = declarative_base()
 
@@ -160,7 +161,7 @@ class InvestmentsFixedTbl(Base):
 
 class SQL:
 
-    def __init__(self, address='sqlite:///spending.db'):
+    def __init__(self, address='sqlite:///../data/spending.db'):
 
         self.engine = create_engine(address)
         self.Session = sessionmaker(bind=self.engine)

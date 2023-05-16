@@ -3,14 +3,8 @@ from db_manager import SQL
 from api import *
 
 import logging
-from log import get_logger
-from sqlalchemy import text
-from datetime import datetime
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
 
-logger = get_logger(__name__)
+# import src.log
 
 class pipeline:
 
