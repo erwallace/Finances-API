@@ -128,7 +128,7 @@ class SQL:
                      '"Company" VARCHAR,'
                      '"Amount" INTEGER,'
                      '"Interest (%)" NUMERIC,'
-                     '"Months" NUMERIC,'
+                     '"Months" INTEGER,'
                      '"Purchased" TIMESTAMP,'
                      '"Matures" TIMESTAMP,'
                      '"Return" INTEGER)'

@@ -1,12 +1,14 @@
 from sqlalchemy import text
 import pandas as pd
-from sql import SQL
+from db_manager import SQL
 from datetime import datetime
+from api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
+
+import logging
 
 '''
 this script will contain the functions to generate all tables and constants that are then displayed in the dashboard.
 '''
-
 
 def query_db(table_name, month_id):
 
@@ -29,6 +31,7 @@ def query_inv_var(month_id):
     dt_previous_month = dt_month_id - pd.DateOffset(months=1)
     previous_month_id = datetime.strftime(dt_previous_month, '%b %y').upper()
 
+    SCHEMA = SchemaInvestmentVariable()
     db = SQL()
 
     with db.engine.connect() as conn:
@@ -49,7 +52,7 @@ def query_inv_var(month_id):
                                    con=conn,
                                    params={"m_ids": previous_month_id})
 
-    inv_var = inv.merge(inv_previous, on='name', how='left', suffixes=('', '_prev'))
+    inv_var = inv.merge(inv_previous, on=SCHEMA.NAME, how='left', suffixes=('', '_prev'))
 
     return inv_var
 
@@ -62,8 +65,8 @@ def query_inv_fix(month_id):
     with db.engine.connect() as conn:
         query = text("""SELECT *
                         FROM investments_fixed
-                        WHERE maturity_date > :current_date
-                            AND purchase_date < :current_date""")
+                        WHERE "Matures" > :current_date
+                            AND "Purchased" < :current_date""")
 
         inv_fix = pd.read_sql(sql=query,
                               con=conn,
@@ -72,27 +75,51 @@ def query_inv_fix(month_id):
     return inv_fix
 
 
-def all_spending_table(spending_data_df: pd.DataFrame) -> pd.DataFrame:
+def spending_table(month_id: str, dd_mm: bool) -> pd.DataFrame:
 
-    spending = spending_data_df[['date', 'subcategory', 'description', 'in', 'out']]
-    # TODO: check that description has everything I want in it
-    spending.loc[:, ['in', 'out']] = spending[['in', 'out']].fillna(0)
-    spending['balance'] = spending['in'].cumsum() + spending['out'].cumsum()
-    # TODO: shorten date to dd/mm/yy
-    return spending
+    SCHEMA = SchemaMonzo()
+    df = query_db('spending_data', month_id)
+
+    miscellaneous_categories = ["General", "Charity", "Expenses", "Savings", "Transfers", "Family", "Finances"]
+    for category in miscellaneous_categories:
+        if df[df[SCHEMA.SUBCATEGORY]==category].shape[0] != 0:
+            logging.warning(f'Monzo data contains {df[df[SCHEMA.SUBCATEGORY] == category].shape[0]} transactions categorised as {category}. These will be removed.')
+    df = df[~df[SCHEMA.SUBCATEGORY].isin(miscellaneous_categories)]
+
+    df = df.sort_values(SCHEMA.DATETIME)
+    df[SCHEMA.BALANCE] = df[SCHEMA.IN].cumsum() + df[SCHEMA.OUT].cumsum()
+    df[[SCHEMA.BALANCE, SCHEMA.IN, SCHEMA.OUT]] /= 100  # convert from int pennies to £'s
+    df[SCHEMA.OUT] = -df[SCHEMA.OUT]
+    if dd_mm:
+        df[SCHEMA.DATETIME] = df[SCHEMA.DATETIME].apply(lambda x: datetime.strftime(x, "%d/%m"))
+
+    df = df[[SCHEMA.DATETIME, SCHEMA.SUBCATEGORY, SCHEMA.NAME, SCHEMA.DESCRIPTION, SCHEMA.IN, SCHEMA.OUT, SCHEMA.BALANCE]]
+
+    return df.reset_index(drop=True)
+
+def summary_table(month_id: str, total_row: bool) -> tuple[pd.DataFrame, float, float]:
+
+    SCHEMA = SchemaMonzo()
+    SCHEMABudget = SchemaBudget()
+
+    # import dfs from database
+    df = spending_table(month_id, False)
+    df_budget = query_db('budget', month_id)
+    # merge dfs on subcategory column
+    df = df.groupby(SCHEMA.SUBCATEGORY)[[SCHEMA.IN, SCHEMA.OUT]].sum().reset_index()
+    df = df_budget[[SCHEMABudget.SUBCATEGORY, SCHEMABudget.CATEGORY, SCHEMABudget.BUDGET]].merge(df, how='left', on=SCHEMA.SUBCATEGORY)
+    # add difference and total columns
+    df = df.fillna(0)
+    df[SCHEMA.OUT] = -df[SCHEMA.OUT]
+    df[SCHEMA.TOTAL] = df[SCHEMA.IN] + df[SCHEMA.OUT]
+    # convert from int pennies to £'s
+    df[SCHEMABudget.BUDGET] /= 100
+    df[SCHEMA.DIFFERENCE] = df[SCHEMABudget.BUDGET] + df[SCHEMA.TOTAL]
 
 
-def summary_spending_table(spending_data_df: pd.DataFrame, budget_df: pd.DataFrame) -> pd.DataFrame:
-
-    summary = spending_data_df.groupby('subcategory')[['in', 'out']].sum().reset_index()
-    summary = budget_df[['subcategory', 'category', 'budget']].merge(summary, how='left', on='subcategory')
-
-    summary['total'] = summary['in'] + summary['out']
-    summary['diff'] = summary['budget'] + summary['total']
-    summary = summary.fillna(0)
-
-    summary = summary[summary.category != 'Miscellaneous']
-
+    # remove 'miscellaneous' rows and order rows
+    df = df[df[SCHEMA.CATEGORY] != 'Miscellaneous']
+    df = df[df[SCHEMA.SUBCATEGORY] != 'Bills']
     subcategory_order = pd.CategoricalDtype(['Income',
                                              'Transport', 'Car',
                                              'Groceries', 'Snacks', 'Lunch', 'Eating out', 'Alcohol',
@@ -101,49 +128,73 @@ def summary_spending_table(spending_data_df: pd.DataFrame, budget_df: pd.DataFra
                                              'Holidays',
                                              'Bills'],
                                             ordered=True)
-    summary.subcategory = summary.subcategory.astype(subcategory_order)
-    summary = summary.sort_values('subcategory').reset_index(drop=True)
+    df[SCHEMA.SUBCATEGORY] = df[SCHEMA.SUBCATEGORY].astype(subcategory_order)
+    df = df.sort_values(SCHEMA.SUBCATEGORY).reset_index(drop=True)
 
-    summary = summary[['category', 'subcategory', 'in', 'out', 'total', 'budget', 'diff']]
+    # filter to final columns
+    df = df[[SCHEMA.CATEGORY, SCHEMA.SUBCATEGORY, SCHEMA.IN, SCHEMA.OUT, SCHEMA.TOTAL, SCHEMABudget.BUDGET, SCHEMA.DIFFERENCE]]
 
-    return summary
+    # calculate constants
+    monthly_budget = df[~df[SCHEMA.SUBCATEGORY].isin(['Income', 'Bills'])][SCHEMABudget.BUDGET].sum()
+    monthly_spending = df[~df[SCHEMA.SUBCATEGORY].isin(['Income', 'Bills'])][SCHEMA.TOTAL].sum()
 
+    if total_row:
+        total = {'Subcategory': 'TOTAL',
+                 'In': df[SCHEMA.IN].sum(),
+                 'Out': df[SCHEMA.OUT].sum(),
+                 'Total': df[SCHEMA.TOTAL].sum(),
+                 'Budget': df[SCHEMABudget.BUDGET].sum(),
+                 'Diff.': df[SCHEMA.DIFFERENCE].sum()}
+        df.loc[len(df)] = ['TOTAL', 'TOTAL', df[SCHEMA.IN].sum(), df[SCHEMA.OUT].sum(), df[SCHEMA.TOTAL].sum(),
+                           df[SCHEMABudget.BUDGET].sum(), df[SCHEMA.DIFFERENCE].sum()]
 
-def income_table(income_df: pd.DataFrame) -> pd.DataFrame:
+    return df, monthly_budget, monthly_spending
 
-    return income_df[['type', 'amount']]
+def accounts_table(month_id: str) -> tuple[pd.DataFrame, float]:
 
+    SCHEMA = SchemaAccounts()
 
-def accounts_table(accounts_df: pd.DataFrame) -> pd.DataFrame:
+    df = query_db('accounts', month_id)
 
-    return accounts_df[['account', 'balance']]
+    df[SCHEMA.BALANCE] /= 100  # convert from int pennies to £'s
+    df = df[[SCHEMA.ACCOUNT, SCHEMA.BALANCE]]
 
+    liquidity = df[SCHEMA.BALANCE].sum()
 
-def inv_var_table(inv_var_df: pd.DataFrame) -> pd.DataFrame:
+    return df, liquidity
 
-    inv_var_df['d%_unit_price'] = (100 * (inv_var_df.unit_price - inv_var_df.unit_price_prev) / inv_var_df.unit_price_prev).round(2)
-    inv_var_df['d_value'] = (inv_var_df.value - inv_var_df.value_prev).round(2)
-    inv_var_df = inv_var_df[['name', 'unit_price', 'd%_unit_price', 'units_owned', 'value', 'd_value']]
+def income_table(month_id: str) -> pd.DataFrame:
 
-    return inv_var_df
+    SCHEMA = SchemaIncome()
 
+    df = query_db('income', month_id)
 
-def inv_fix_table():
-    pass
+    df[SCHEMA.AMOUNT] /= 100  # convert from int pennies to £'s
+    df = df[[SCHEMA.TYPE, SCHEMA.AMOUNT]]
 
+    return df
 
-def get_monthly_budget(spending_data_df: pd.DataFrame, budget_df: pd.DataFrame) -> float:
+def investment_tables(month_id, liquidity) -> tuple[pd.DataFrame, pd.DataFrame, float]:
 
-    summary = summary_spending_table(spending_data_df, budget_df)
-    return summary[~summary.subcategory.isin(['Income', 'Bills'])].budget.sum()
+    SCHEMAVar = SchemaInvestmentVariable()
 
+    inv_var = query_inv_var(month_id)
 
-def get_monthly_spend(spending_data_df: pd.DataFrame, budget_df: pd.DataFrame) -> float:
+    inv_var[SCHEMAVar.D_UNIT_PRICE] = (100 * (inv_var[SCHEMAVar.UNIT_PRICE] - inv_var[SCHEMAVar.UNIT_PRICE_PREV]) / inv_var[SCHEMAVar.UNIT_PRICE_PREV]).round(2)
+    inv_var[SCHEMAVar.D_VALUE] = (inv_var[SCHEMAVar.VALUE] - inv_var[SCHEMAVar.VALUE_PREV]).round(2)
+    inv_var = inv_var[[SCHEMAVar.NAME, SCHEMAVar.UNIT_PRICE, SCHEMAVar.D_UNIT_PRICE, SCHEMAVar.UNITS_OWNED, SCHEMAVar.VALUE, SCHEMAVar.D_VALUE]]
 
-    summary = summary_spending_table(spending_data_df, budget_df)
-    return summary[~summary.subcategory.isin(['Income', 'Bills'])].total.sum()
+    SCHEMAFix = SchemaInvestmentFixed()
 
+    inv_fix = query_inv_fix(month_id)
 
+    inv_fix[[SCHEMAFix.AMOUNT, SCHEMAFix.RETURN]] /= 100  # convert from int pennies to £'s
+    inv_fix = inv_fix.sort_values(SCHEMAFix.MATURITY_DATE)
+    inv_fix = inv_fix[[SCHEMAFix.NAME, SCHEMAFix.COMPANY, SCHEMAFix.AMOUNT, SCHEMAFix.INTEREST, SCHEMAFix.RETURN, SCHEMAFix.DURATION, SCHEMAFix.MATURITY_DATE]]
+
+    net_worth = liquidity + inv_var[SCHEMAVar.VALUE].sum() + inv_fix[SCHEMAFix.AMOUNT].sum()
+
+    return inv_var, inv_fix, round(net_worth, 2)
 
 
 

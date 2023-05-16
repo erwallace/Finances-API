@@ -1,16 +1,17 @@
 from dataclasses import dataclass
 from datetime import datetime
 import io
+import os
 import json
-from typing import List, Tuple, Any
+from typing import List
+
+import fnmatch
 
 import pandas as pd
 import numpy as np
 
 import logging
 import log
-
-# TODO: how am I going to add in rent?
 
 
 @dataclass
@@ -38,6 +39,9 @@ class SchemaMonzo:
     DATETIME: str = 'Date'
     MONTH_ID: str = 'month_id'
     CATEGORY: str = 'Category'
+    BALANCE: str = 'Balance'
+    TOTAL: str = 'Total'
+    DIFFERENCE: str = 'Diff.'
 
     @property
     def df_columns_initial(self) -> List[str]:
@@ -132,6 +136,10 @@ class SchemaInvestmentVariable:
     ID: str = 'id'
     MONTH_ID: str = 'month_id'
     VALUE: str = 'Value'
+    D_UNIT_PRICE: str = 'd. Unit Price (%)'
+    D_VALUE: str = 'd. Value'
+    UNIT_PRICE_PREV: str = 'Unit Price_prev'
+    VALUE_PREV: str = 'Value_prev'
 
     @property
     def df_columns_initial(self) -> List[str]:
@@ -172,6 +180,10 @@ class SchemaInvestmentFixed:
 class Finances:
     MONTH_FORMAT: str = '%b %y'
 
+    def __init__(self, month_id: str):
+        ''' month_id in the format "MMM YY" '''
+        self.month_id = month_id
+
     def add_month_id_column(self, df: pd.DataFrame) -> pd.Series:
         '''adds month column (MMM YY) to existing dataframe based on datetime column'''
 
@@ -189,7 +201,7 @@ class Finances:
 
     def convert_to_pennies(self, col: pd.Series) -> pd.Series:
         '''converts all money to pennies so that it can be stored as an integer'''
-        col = col*100
+        col = col.astype(float)*100
 
         return col.fillna(0).astype(int)
 
@@ -199,8 +211,19 @@ class Monzo(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaMonzo = SchemaMonzo()
 
-    def preprocess(self, log_file: str | io.BytesIO | io.StringIO) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def preprocess(self) -> tuple[pd.DataFrame, pd.DataFrame]:
         '''loads Monzo file and returns as pandas dataframe'''
+
+        cwd = os.getcwd()
+        log_folder = cwd + '\\statements'
+        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+        month = datetime.strftime(dt, '%B')
+        year = datetime.strftime(dt, '%Y')
+        file = fnmatch.filter(os.listdir(log_folder), f'MonzoDataExport_{month}_{year}*.csv')
+        assert len(file) != 0, f'No files found in cwd matching MonzoDataExport_{month}_{year}*.csv'
+        assert len(file) == 1, f'More than one file matches MonzoDataExport_{month}_{year}*.csv - {file}'
+        log_file = log_folder + '\\' + file[0]
+
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         # add additional information
@@ -273,13 +296,15 @@ class Monzo(Finances):
 
 
 class Budget(Finances):
+
     DATETIME_FORMAT: str = '%d/%m/%Y'
     SKIPROWS: int = 1
     SCHEMA: SchemaBudget = SchemaBudget()
 
-    def preprocess(self, log_file='inputs/budget.csv') -> pd.DataFrame:
+    def preprocess(self) -> pd.DataFrame:
         '''loads budget file and returns as pandas dataframe'''
 
+        log_file = f'inputs/budget_{self.month_id.replace(" ", "_")}.csv'
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df = self.add_datetime_column(df)
@@ -325,9 +350,10 @@ class Accounts(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaAccounts = SchemaAccounts()
 
-    def preprocess(self, log_file='inputs/accounts.csv') -> pd.DataFrame:
+    def preprocess(self) -> pd.DataFrame:
         '''loads accounts file and returns as pandas dataframe'''
 
+        log_file = f'inputs/accounts_{self.month_id.replace(" ", "_")}.csv'
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df = self.add_datetime_column(df)
@@ -355,9 +381,10 @@ class Income(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaIncome = SchemaIncome()
 
-    def preprocess(self, log_file='inputs/income.csv') -> pd.DataFrame:
+    def preprocess(self) -> pd.DataFrame:
         '''loads income file and returns as pandas dataframe'''
 
+        log_file = f'inputs/income_{self.month_id.replace(" ", "_")}.csv'
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df = self.add_datetime_column(df)
@@ -385,8 +412,10 @@ class InvestmentVariable(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInvestmentVariable = SchemaInvestmentVariable()
 
-    def preprocess(self, log_file='inputs/investments_variable.csv') -> pd.DataFrame:
+    def preprocess(self) -> pd.DataFrame:
         '''loads investments_variable file and returns as pandas dataframe'''
+
+        log_file = f'inputs/investments_variable_{self.month_id.replace(" ", "_")}.csv'
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df)
@@ -414,9 +443,12 @@ class InvestmentVariable(Finances):
 class InvestmentFixed(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInvestmentFixed = SchemaInvestmentFixed()
+
     # TODO: only need to of duration, purchase date and maturity date. Should calculate the 3rd
-    def preprocess(self, log_file='inputs/investments_fixed.csv') -> pd.DataFrame:
+    def preprocess(self) -> pd.DataFrame:
         '''loads investments_fixed file and returns as pandas dataframe'''
+
+        log_file = 'inputs/investments_fixed.csv'
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df[self.SCHEMA.AMOUNT] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
@@ -435,22 +467,4 @@ class InvestmentFixed(Finances):
 
     def add_id_column(self, df: pd.DataFrame) -> pd.Series:
         return df[self.SCHEMA.NAME].astype(str) + df[self.SCHEMA.COMPANY].astype(str) + df[self.SCHEMA.AMOUNT].astype(str) + df[self.SCHEMA.INTEREST].astype(str) + df[self.SCHEMA.DURATION].astype(str) + df[self.SCHEMA.MATURITY_DATE].astype(str)
-
-# example
-mz = Monzo()
-df_mz, months = mz.preprocess('statements/MonzoDataExport_March_2023-04-01_085048.csv')
-
-acc = Accounts()
-df_acc = acc.preprocess()
-
-inc = Income()
-df_inc = inc.preprocess()
-
-inv = InvestmentVariable()
-df_inv = inv.preprocess()
-
-inf = InvestmentFixed()
-df_inf = inf.preprocess()
-
-print('done')
 
