@@ -1,8 +1,8 @@
-from sqlalchemy import text
+from sqlalchemy import inspect, select, Table, and_
 import pandas as pd
-from db_manager import SQL
+from src.preprocessing.db_manager import SQL, get_class_from_table_name, InvestmentsVariableTbl, InvestmentsFixedTbl
 from datetime import datetime
-from api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
+from src.preprocessing.api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
 
 import logging
 
@@ -14,13 +14,14 @@ def query_db(table_name, month_id):
 
     db = SQL()
 
-    with db.engine.connect() as conn:
-        query = text(f'SELECT * FROM {table_name} WHERE month_id LIKE :m_ids')
+    assert table_name in inspect(db.engine).get_table_names(), f'{table_name} is not a valid table name.'
 
-        df = pd.read_sql(sql=query,
-                          con=conn,
-                          params={"m_ids": month_id}
-                          )
+    class_ = get_class_from_table_name(table_name)
+    table = Table(table_name, class_.metadata)
+
+    with db.engine.connect() as conn:
+        query = select(table).where(table.c.month_id == month_id)
+        df = pd.read_sql(sql=query, con=conn)
 
     return df
 
@@ -34,23 +35,15 @@ def query_inv_var(month_id):
     SCHEMA = SchemaInvestmentVariable()
     db = SQL()
 
-    with db.engine.connect() as conn:
-        query = text("""SELECT *
-                        FROM investments_variable
-                        WHERE month_id LIKE :m_ids""")
-
-        inv = pd.read_sql(sql=query,
-                          con=conn,
-                          params={"m_ids": month_id})
+    table = Table(InvestmentsVariableTbl.__tablename__, InvestmentsVariableTbl.metadata)
 
     with db.engine.connect() as conn:
-        query = text("""SELECT *
-                        FROM investments_variable
-                        WHERE month_id LIKE :m_ids""")
+        query = select(table).where(table.c.month_id.like(month_id))
+        inv = pd.read_sql(sql=query, con=conn)
 
-        inv_previous = pd.read_sql(sql=query,
-                                   con=conn,
-                                   params={"m_ids": previous_month_id})
+    with db.engine.connect() as conn:
+        query = select(table).where(table.c.month_id.like(previous_month_id))
+        inv_previous = pd.read_sql(sql=query, con=conn)
 
     inv_var = inv.merge(inv_previous, on=SCHEMA.NAME, how='left', suffixes=('', '_prev'))
 
@@ -62,15 +55,13 @@ def query_inv_fix(month_id):
 
     db = SQL()
 
+    table = Table(InvestmentsFixedTbl.__tablename__, InvestmentsFixedTbl.metadata)
     with db.engine.connect() as conn:
-        query = text("""SELECT *
-                        FROM investments_fixed
-                        WHERE "Matures" > :current_date
-                            AND "Purchased" < :current_date""")
-
-        inv_fix = pd.read_sql(sql=query,
-                              con=conn,
-                              params={"current_date": dt_month_id + pd.DateOffset(months=1)})
+        current_date = dt_month_id + pd.DateOffset(months=1)
+        # TODO: query currently not working
+        query = select(table).where((table.c.Matures > current_date) & (table.c.Purchased < current_date))
+        # query = select(table).filter(and_(table.c.Matures > current_date, table.c.Purchased < current_date))
+        inv_fix = pd.read_sql(sql=query, con=conn)
 
     return inv_fix
 
@@ -78,7 +69,7 @@ def query_inv_fix(month_id):
 def spending_table(month_id: str, dd_mm: bool) -> pd.DataFrame:
 
     SCHEMA = SchemaMonzo()
-    df = query_db('spending_data', month_id)
+    df = query_db('spending', month_id)
 
     miscellaneous_categories = ["General", "Charity", "Expenses", "Savings", "Transfers", "Family", "Finances"]
     for category in miscellaneous_categories:
@@ -196,5 +187,8 @@ def investment_tables(month_id, liquidity) -> tuple[pd.DataFrame, pd.DataFrame, 
 
     return inv_var, inv_fix, round(net_worth, 2)
 
+if __name__ == '__main__':
 
-
+    month_id = 'JAN 23'
+    df = spending_table(month_id, False)
+    inv_f, inv_v, _ = investment_tables(month_id, 1000)

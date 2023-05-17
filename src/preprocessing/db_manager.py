@@ -1,9 +1,11 @@
-from sqlalchemy import text, create_engine, Column, String, DateTime, Integer, Float, ForeignKey, select, inspect, Table
+from sqlalchemy import create_engine, Column, String, DateTime, Integer, Float, ForeignKey, select, inspect, Table, TIMESTAMP
 from sqlalchemy.orm import declarative_base, sessionmaker
 import pandas as pd
 import logging
 import psycopg2
-from api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
+from src.preprocessing.api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
+# the path to spi.py changes depending on whether its called from db_manager or dash_inputs
+
 
 # import src.log
 
@@ -28,7 +30,7 @@ class SpendingTbl(Base):
     SCHEMA = SchemaMonzo()
 
     id = Column(String, primary_key=True)
-    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
     locals()[SCHEMA.DATETIME] = Column(DateTime)
     locals()[SCHEMA.TYPE] = Column(String)
     locals()[SCHEMA.NAME] = Column(String)
@@ -58,7 +60,7 @@ class BudgetTbl(Base):
     SCHEMA = SchemaBudget()
 
     id = Column(String, primary_key=True)
-    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
     locals()[SCHEMA.DATETIME] = Column(DateTime)
     locals()[SCHEMA.CATEGORY] = Column(String)
     locals()[SCHEMA.SUBCATEGORY] = Column(String)
@@ -80,7 +82,7 @@ class AccountsTbl(Base):
     id = Column(String, primary_key=True)
     locals()[SCHEMA.ACCOUNT] = Column(String)
     locals()[SCHEMA.DATETIME] = Column(DateTime)
-    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
     locals()[SCHEMA.BALANCE] = Column(Integer)
 
     def __repr__(self):
@@ -98,7 +100,7 @@ class IncomeTbl(Base):
     id = Column(String, primary_key=True)
     locals()[SCHEMA.TYPE] = Column(String)
     locals()[SCHEMA.DATETIME] = Column(DateTime)
-    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
     locals()[SCHEMA.AMOUNT] = Column(Integer)
 
     def __repr__(self):
@@ -116,7 +118,7 @@ class InvestmentsVariableTbl(Base):
     id = Column(String, primary_key=True)
     locals()[SCHEMA.NAME] = Column(String)
     locals()[SCHEMA.DATETIME] = Column(DateTime)
-    locals()[SCHEMA.MONTH_ID] = Column(DateTime, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
     locals()[SCHEMA.COMPANY] = Column(String)
     locals()[SCHEMA.UNIT_PRICE] = Column(Float)
     locals()[SCHEMA.UNITS_OWNED] = Column(Float)
@@ -143,8 +145,8 @@ class InvestmentsFixedTbl(Base):
     locals()[SCHEMA.AMOUNT] = Column(Integer)
     locals()[SCHEMA.INTEREST] = Column(Float)
     locals()[SCHEMA.DURATION] = Column(Integer)
-    locals()[SCHEMA.PURCHASE_DATE] = Column(DateTime)
-    locals()[SCHEMA.MATURITY_DATE] = Column(DateTime)
+    locals()[SCHEMA.PURCHASE_DATE] = Column(TIMESTAMP)
+    locals()[SCHEMA.MATURITY_DATE] = Column(TIMESTAMP)
     locals()[SCHEMA.RETURN] = Column(Integer)
 
     def __repr__(self):
@@ -169,9 +171,7 @@ class SQL:
 
     def create_table(self, table_name):
 
-        table_name_to_class = {m.tables[0].name: m.class_ for m in Base.registry.mappers}
-        class_ = table_name_to_class[table_name]
-
+        class_ = get_class_from_table_name(table_name)
         class_.__table__.create(bind=self.engine)
         logging.info(f'table created: {table_name}')
 
@@ -190,9 +190,7 @@ class SQL:
 
         assert table_name in inspect(self.engine).get_table_names(),  f'{table_name} is not a valid table name.'
 
-        table_name_to_class = {m.tables[0].name: m.class_ for m in Base.registry.mappers}
-        class_ = table_name_to_class[table_name]
-
+        class_ = get_class_from_table_name(table_name)
         class_.__table__.drop(self.engine)
         logging.info(f'table deleted: {table_name}')
 
@@ -210,9 +208,7 @@ class SQL:
 
         assert table_name in inspect(self.engine).get_table_names(),  f'{table_name} is not a valid table name.'
 
-        table_name_to_class = {m.tables[0].name: m.class_ for m in Base.registry.mappers}
-        class_ = table_name_to_class[table_name]
-
+        class_ = get_class_from_table_name(table_name)
         table = Table(class_.__tablename__, class_.metadata)
         p_key = inspect(class_).primary_key[0].name
         with self.engine.connect() as conn:
@@ -232,6 +228,10 @@ class SQL:
                               )
 
         logging.info(f'({non_duplicates.shape[0]}/{df.shape[0]}) rows from df appended to {table_name}')
+
+def get_class_from_table_name(table_name):
+    table_name_to_class = {m.tables[0].name: m.class_ for m in Base.registry.mappers}
+    return table_name_to_class[table_name]
 
 if __name__ == '__main__':
     pass
