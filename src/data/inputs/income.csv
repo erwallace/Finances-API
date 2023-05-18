@@ -1,6 +1,0 @@
-type,amount,comment
-date,28/03/2023,always the last day of that month in the format dd/mm/yy
-Paycheck,1108.33,positive
-Income Tax,-221.6,negative
-National Insurance,-7.34,negative
-Student Loan,0,negative

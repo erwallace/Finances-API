@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import json
 from typing import List
+import calendar
 
 import fnmatch
 
@@ -57,53 +58,9 @@ class SchemaMonzo:
 
 
 @dataclass
-class SchemaBudget:
-    SUBCATEGORY: str = 'Subcategory'
-    BUDGET: str = 'Budget'
-    COMMENT: str = 'Comment'
-
-    # CALCULATED/CREATED
-    ID: str = 'id'
-    DATETIME: str = 'Date'
-    MONTH_ID: str = 'month_id'
+class SchemaInputs:
     CATEGORY: str = 'Category'
-
-    @property
-    def df_columns_initial(self) -> List[str]:
-        '''provides all the columns in necessary order for correct extraction to dataframe'''
-        return [self.SUBCATEGORY, self.BUDGET, self.COMMENT]
-
-    @property
-    def df_columns_final(self) -> List[str]:
-        '''provides all the columns in necessary order for correct exporting of dataframe'''
-        return [self.ID, self.MONTH_ID, self.DATETIME, self.CATEGORY, self.SUBCATEGORY, self.BUDGET]
-
-
-@dataclass
-class SchemaAccounts:
-    ACCOUNT: str = 'Account'
-    BALANCE: str = 'Balance'
-    COMMENT: str = 'Comment'
-
-    # CALCULATED/CREATED
-    ID: str = 'id'
-    DATETIME: str = 'Date'
-    MONTH_ID: str = 'month_id'
-
-    @property
-    def df_columns_initial(self) -> List[str]:
-        '''provides all the columns in necessary order for correct extraction to dataframe'''
-        return [self.ACCOUNT, self.BALANCE, self.COMMENT]
-
-    @property
-    def df_columns_final(self) -> List[str]:
-        '''provides all the columns in necessary order for correct exporting of dataframe'''
-        return [self.ID, self.ACCOUNT, self.DATETIME, self.MONTH_ID, self.BALANCE]
-
-
-@dataclass
-class SchemaIncome:
-    TYPE: str = 'Type'
+    SUBCATEGORY: str = 'Subcategory'
     AMOUNT: str = 'Amount'
     COMMENT: str = 'Comment'
 
@@ -111,14 +68,28 @@ class SchemaIncome:
     ID: str = 'id'
     DATETIME: str = 'Date'
     MONTH_ID: str = 'month_id'
+    ACCOUNT: str = 'Account'
+    BALANCE: str = 'Balance'
+    TYPE: str = 'Type'
+    BUDGET: str = 'Budget'
 
     @property
     def df_columns_initial(self) -> List[str]:
         '''provides all the columns in necessary order for correct extraction to dataframe'''
-        return [self.TYPE, self.AMOUNT, self.COMMENT]
+        return [self.CATEGORY, self.SUBCATEGORY, self.AMOUNT, self.COMMENT]
 
     @property
-    def df_columns_final(self) -> List[str]:
+    def budget_columns_final(self) -> List[str]:
+        '''provides all the columns in necessary order for correct exporting of dataframe'''
+        return [self.ID, self.MONTH_ID, self.DATETIME, self.CATEGORY, self.SUBCATEGORY, self.BUDGET]
+
+    @property
+    def accounts_columns_final(self) -> List[str]:
+        '''provides all the columns in necessary order for correct exporting of dataframe'''
+        return [self.ID, self.ACCOUNT, self.DATETIME, self.MONTH_ID, self.BALANCE]
+
+    @property
+    def income_columns_final(self) -> List[str]:
         '''provides all the columns in necessary order for correct exporting of dataframe'''
         return [self.ID, self.TYPE, self.DATETIME, self.MONTH_ID, self.AMOUNT]
 
@@ -143,7 +114,7 @@ class SchemaInvestmentVariable:
     @property
     def df_columns_initial(self) -> List[str]:
         '''provides all the columns in necessary order for correct extraction to dataframe'''
-        return [self.NAME, self.COMPANY, self.UNIT_PRICE, self.UNITS_OWNED, self.DATETIME]
+        return [self.NAME, self.COMPANY, self.UNIT_PRICE, self.UNITS_OWNED]
 
     @property
     def df_columns_final(self) -> List[str]:
@@ -182,6 +153,13 @@ class Finances:
     def __init__(self, month_id: str):
         ''' month_id in the format "MMM YY" '''
         self.month_id = month_id
+
+    def add_datetime_column(self, df: pd.DataFrame, month_id: str) -> pd.Series:
+
+        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+        _, month_length = calendar.monthrange(dt.year, dt.month)
+
+        return dt + pd.DateOffset(days=month_length-1)  # last day of the month
 
     def add_month_id_column(self, df: pd.DataFrame) -> pd.Series:
         '''adds month column (MMM YY) to existing dataframe based on datetime column'''
@@ -295,33 +273,27 @@ class Monzo(Finances):
 
 class Budget(Finances):
 
-    DATETIME_FORMAT: str = '%d/%m/%Y'
+    DATETIME_FORMAT: str = '%d_%y'
     SKIPROWS: int = 1
-    SCHEMA: SchemaBudget = SchemaBudget()
+    SCHEMA: SchemaInputs = SchemaInputs()
 
     def preprocess(self) -> pd.DataFrame:
         '''loads budget file and returns as pandas dataframe'''
 
-        log_file = os.path.join(os.pardir, 'data', 'inputs', f'budget_{self.month_id.replace(" ", "_")}.csv')
-        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+        mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-        df = self.add_datetime_column(df)
+        log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
+        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+        df = df[df[self.SCHEMA.CATEGORY]=='BUDGET'].reset_index(drop=True)
+
+        df[self.SCHEMA.DATETIME] = self.add_datetime_column(df, self.month_id)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
         df[self.SCHEMA.CATEGORY] = self.add_category_column(df)
-        df[self.SCHEMA.BUDGET] = self.convert_to_pennies(df[self.SCHEMA.BUDGET])
+        df[self.SCHEMA.BUDGET] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
 
-        df = df[self.SCHEMA.df_columns_final]
-
-        return df
-
-    def add_datetime_column(self, df: pd.DataFrame) -> pd.DataFrame:
-        '''adds datetime column to existing dataframe based on date row, then remove that row'''
-
-        dt_idx = df.index[df[self.SCHEMA.SUBCATEGORY] == 'date']
-        date = df.iloc[dt_idx][self.SCHEMA.BUDGET].values[0]
-        df[self.SCHEMA.DATETIME] = datetime.strptime(date, self.DATETIME_FORMAT)
-        df = df.drop(dt_idx, axis=0).reset_index(drop=True)
+        df = df[self.SCHEMA.budget_columns_final]
 
         return df
 
@@ -344,79 +316,72 @@ class Budget(Finances):
 
 
 class Accounts(Finances):
-    DATETIME_FORMAT: str = '%d/%m/%Y'
+    DATETIME_FORMAT: str = '%d_%y'
     SKIPROWS: int = 1
-    SCHEMA: SchemaAccounts = SchemaAccounts()
+    SCHEMA: SchemaInputs = SchemaInputs()
 
     def preprocess(self) -> pd.DataFrame:
         '''loads accounts file and returns as pandas dataframe'''
 
-        log_file = os.path.join(os.pardir, 'data', 'inputs', f'accounts_{self.month_id.replace(" ", "_")}.csv')
-        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+        mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-        df = self.add_datetime_column(df)
+        log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
+        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+        df = df[df[self.SCHEMA.CATEGORY]=='ACCOUNTS'].reset_index(drop=True)
+
+        df[self.SCHEMA.DATETIME] = dt
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
-        df[self.SCHEMA.BALANCE] = self.convert_to_pennies(df[self.SCHEMA.BALANCE])
+        df[self.SCHEMA.BALANCE] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
+        df[self.SCHEMA.ACCOUNT] = df[self.SCHEMA.SUBCATEGORY]
 
-        df = df[self.SCHEMA.df_columns_final]
-
-        return df
-
-    def add_datetime_column(self, df: pd.DataFrame) -> pd.DataFrame:
-        '''adds datetime column to existing dataframe based on date row, then remove that row'''
-
-        dt_idx = df.index[df[self.SCHEMA.ACCOUNT] == 'date']
-        date = df.iloc[dt_idx][self.SCHEMA.BALANCE].values[0]
-        df[self.SCHEMA.DATETIME] = datetime.strptime(date, self.DATETIME_FORMAT)
-        df = df.drop(dt_idx, axis=0).reset_index(drop=True)
+        df = df[self.SCHEMA.accounts_columns_final]
 
         return df
 
 
 class Income(Finances):
-    DATETIME_FORMAT: str = '%d/%m/%Y'
+    DATETIME_FORMAT: str = '%d_%y'
     SKIPROWS: int = 1
-    SCHEMA: SchemaIncome = SchemaIncome()
+    SCHEMA: SchemaInputs = SchemaInputs()
 
     def preprocess(self) -> pd.DataFrame:
         '''loads income file and returns as pandas dataframe'''
 
-        log_file = os.path.join(os.pardir, 'data', 'inputs', f'income_{self.month_id.replace(" ", "_")}.csv')
-        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+        mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-        df = self.add_datetime_column(df)
+        log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
+        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+        df = df[df[self.SCHEMA.CATEGORY]=='INCOME'].reset_index(drop=True)
+
+        df[self.SCHEMA.DATETIME] = self.add_datetime_column(df, self.month_id)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
         df[self.SCHEMA.AMOUNT] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
+        df[self.SCHEMA.TYPE] = df[self.SCHEMA.SUBCATEGORY]
 
-        df = df[self.SCHEMA.df_columns_final]
-
-        return df
-
-    def add_datetime_column(self, df: pd.DataFrame) -> pd.DataFrame:
-        '''adds datetime column to existing dataframe based on date row, then remove that row'''
-
-        dt_idx = df.index[df[self.SCHEMA.TYPE] == 'date']
-        date = df.iloc[dt_idx][self.SCHEMA.AMOUNT].values[0]
-        df[self.SCHEMA.DATETIME] = datetime.strptime(date, self.DATETIME_FORMAT)
-        df = df.drop(dt_idx, axis=0).reset_index(drop=True)
+        df = df[self.SCHEMA.income_columns_final]
 
         return df
 
 
 class InvestmentVariable(Finances):
-    DATETIME_FORMAT: str = '%d/%m/%Y'
+    DATETIME_FORMAT: str = '%d_%y'
     SKIPROWS: int = 1
     SCHEMA: SchemaInvestmentVariable = SchemaInvestmentVariable()
 
     def preprocess(self) -> pd.DataFrame:
         '''loads investments_variable file and returns as pandas dataframe'''
 
-        log_file = os.path.join(os.pardir, 'data', 'inputs', f'investments_variable_{self.month_id.replace(" ", "_")}.csv')
+        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+        mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
+
+        log_file = os.path.join(os.pardir, 'data', 'inputs', f'investments_variable_{mm_yy}.csv')
         df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
-        df[self.SCHEMA.DATETIME] = self.add_datetime_column(df)
+        df[self.SCHEMA.DATETIME] = self.add_datetime_column(df, self.month_id)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
         df[self.SCHEMA.VALUE] = self.add_value_column(df)
@@ -424,13 +389,6 @@ class InvestmentVariable(Finances):
         df = df[self.SCHEMA.df_columns_final]
 
         return df
-
-    def add_datetime_column(self, df: pd.DataFrame) -> pd.Series:
-        '''adds datetime column to existing dataframe based on date and time columns'''
-
-        extract_datetime = lambda x: datetime.strptime(x, self.DATETIME_FORMAT)
-
-        return df[self.SCHEMA.DATETIME].apply(extract_datetime)
 
     def add_value_column(self, df: pd.DataFrame) -> pd.Series:
         '''adds value column to existing dataframe based on unit_price and units_owned columns'''
@@ -442,7 +400,7 @@ class InvestmentFixed(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInvestmentFixed = SchemaInvestmentFixed()
 
-    # TODO: only need to of duration, purchase date and maturity date. Should calculate the 3rd
+    # TODO: only need two of duration, purchase date and maturity date. Should calculate the 3rd
     def preprocess(self) -> pd.DataFrame:
         '''loads investments_fixed file and returns as pandas dataframe'''
 
