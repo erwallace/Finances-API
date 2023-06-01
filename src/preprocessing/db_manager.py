@@ -2,7 +2,6 @@ from sqlalchemy import create_engine, Column, String, DateTime, Integer, Float, 
 from sqlalchemy.orm import declarative_base, sessionmaker
 import pandas as pd
 import logging
-import psycopg2
 from src.preprocessing.api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
 # the path to spi.py changes depending on whether its called from db_manager or dash_inputs
 
