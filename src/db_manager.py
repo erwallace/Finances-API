@@ -1,8 +1,10 @@
-from sqlalchemy import create_engine, Column, String, DateTime, Integer, Float, ForeignKey, select, inspect, Table, TIMESTAMP
+from sqlalchemy import create_engine, Column, String, DateTime, Integer, Float, ForeignKey, select, inspect, Table, \
+    TIMESTAMP
 from sqlalchemy.orm import declarative_base, sessionmaker
 import pandas as pd
 import logging
 import psycopg2
+import os
 from api import SchemaMonzo, SchemaInputs, SchemaInvestmentFixed, SchemaInvestmentVariable
 
 # import src.log
@@ -11,7 +13,7 @@ Base = declarative_base()
 
 
 class MonthsTbl(Base):
-
+    ''' sqlalchemy table class for months '''
     __tablename__ = 'months'
     SCHEMA = SchemaMonzo()
 
@@ -24,6 +26,7 @@ class MonthsTbl(Base):
 
 
 class SpendingTbl(Base):
+    ''' sqlalchemy table class for spending '''
     __tablename__ = 'spending'
     SCHEMA = SchemaMonzo()
 
@@ -54,6 +57,7 @@ class SpendingTbl(Base):
 
 
 class BudgetTbl(Base):
+    ''' sqlalchemy table class for budget '''
     __tablename__ = 'budget'
     SCHEMA = SchemaInputs()
 
@@ -74,6 +78,7 @@ class BudgetTbl(Base):
 
 
 class AccountsTbl(Base):
+    ''' sqlalchemy table class for accounts '''
     __tablename__ = 'accounts'
     SCHEMA = SchemaInputs()
 
@@ -92,6 +97,7 @@ class AccountsTbl(Base):
 
 
 class IncomeTbl(Base):
+    ''' sqlalchemy table class for income '''
     __tablename__ = 'income'
     SCHEMA = SchemaInputs
 
@@ -110,6 +116,7 @@ class IncomeTbl(Base):
 
 
 class InvestmentsVariableTbl(Base):
+    ''' sqlalchemy table class for investments_variable '''
     __tablename__ = 'investments_variable'
     SCHEMA = SchemaInvestmentVariable()
 
@@ -134,6 +141,7 @@ class InvestmentsVariableTbl(Base):
 
 
 class InvestmentsFixedTbl(Base):
+    ''' sqlalchemy table class for investments_fixed '''
     __tablename__ = 'investments_fixed'
     SCHEMA = SchemaInvestmentFixed()
 
@@ -161,20 +169,31 @@ class InvestmentsFixedTbl(Base):
 
 class SQL:
 
-    def __init__(self, address='sqlite:///../data/spending.db'):
+    def __init__(self):
+
+        if os.getenv("DEBUG") == 'True':
+            address = r'sqlite:///data/debug.db'
+        else:
+            address = r'sqlite:///../data/spending.db'
 
         self.engine = create_engine(address)
         self.Session = sessionmaker(bind=self.engine)
         logging.info(f'SQL connection established to {address}')
 
-    def create_table(self, table_name):
+    def create_table(self, table_name: str) -> None:
+        '''
+        creates a table for the database
 
+        :param table_name: str __tablename__ of a sqlalchemy table class
+
+        :return: None
+        '''
         class_ = get_class_from_table_name(table_name)
         class_.__table__.create(bind=self.engine)
         logging.info(f'table created: {table_name}')
 
-    def create_all_tables(self):
-        ''' doc-string'''
+    def create_all_tables(self) -> None:
+        ''' creates all tables in the schema '''
         tbls = ['months', 'spending', 'budget', 'accounts', 'income', 'investments_variable', 'investments_fixed']
 
         for tbl in tbls:
@@ -183,16 +202,23 @@ class SQL:
             except:
                 logging.warning(f'table already exists: {tbl}')
 
-    def delete_table(self, table_name):
-        """deletes a table from the pybudget"""
+    def delete_table(self, table_name: str) -> None:
+        '''
+        deletes a table from the database
 
-        assert table_name in inspect(self.engine).get_table_names(),  f'{table_name} is not a valid table name.'
+        :param table_name: str __tablename__ of a sqlalchemy table class
+
+        :return: None
+        '''
+        if table_name not in inspect(self.engine).get_table_names():
+            raise KeyError(f'{table_name} is not a valid table name.')
 
         class_ = get_class_from_table_name(table_name)
         class_.__table__.drop(self.engine)
         logging.info(f'table deleted: {table_name}')
 
-    def delete_all_tables(self):
+    def delete_all_tables(self) -> None:
+        ''' deletes all tables from the schema '''
         tbls = ['spending', 'budget', 'accounts', 'income', 'investments_variable', 'investments_fixed', 'months']
 
         for tbl in tbls:
@@ -201,16 +227,24 @@ class SQL:
             except:
                 logging.warning(f'table not found, cannot be deleted: {tbl}')
 
-    def append_to_db(self, df: pd.DataFrame, table_name: str):
-        """check for duplicates and append to database"""
+    def append_to_db(self, df: pd.DataFrame, table_name: str) -> None:
+        '''
+        Appends df to specified table_name. Only rows not already present in the database will be appended.
 
-        assert table_name in inspect(self.engine).get_table_names(),  f'{table_name} is not a valid table name.'
+        :param df: pd.DataFrame of values to be added to table
+        :param table_name: str __tablename__ of a sqlalchemy table class
+
+        :return: None
+        '''
+
+        if table_name not in inspect(self.engine).get_table_names():
+            raise KeyError(f'{table_name} is not a valid table name.')
 
         class_ = get_class_from_table_name(table_name)
         table = Table(class_.__tablename__, class_.metadata)
         p_key = inspect(class_).primary_key[0].name
         with self.engine.connect() as conn:
-            db = pd.read_sql(sql=select(table.c.id), con=conn) # FROM is implicit
+            db = pd.read_sql(sql=select(table.c.id), con=conn)  # FROM is implicit
 
         # append non-duplicate rows
         non_duplicates = df[df[p_key].isin(db[p_key]) == False].dropna(how='all')
@@ -227,9 +261,18 @@ class SQL:
 
         logging.info(f'({non_duplicates.shape[0]}/{df.shape[0]}) rows from df appended to {table_name}')
 
-def get_class_from_table_name(table_name):
+
+def get_class_from_table_name(table_name: str) -> object:
+    '''
+    Given a sqlalchemy table class __tablename__, this returns the class object
+
+    :param table_name: str __tablename__ of a sqlalchemy table class
+
+    :return: class object
+    '''
     table_name_to_class = {m.tables[0].name: m.class_ for m in Base.registry.mappers}
     return table_name_to_class[table_name]
+
 
 if __name__ == '__main__':
     pass
