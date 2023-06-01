@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 
 import plotly.io as pio
 
-from src.preprocessing.db_manager import MonthsTbl
+from src.db_manager import MonthsTbl
 
 '''
 MONTHLY COMPONENTS LAYOUT

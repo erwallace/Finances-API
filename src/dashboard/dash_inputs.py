@@ -1,8 +1,8 @@
-from sqlalchemy import inspect, select, Table, and_
+from sqlalchemy import inspect, select, Table
 import pandas as pd
-from src.preprocessing.db_manager import SQL, get_class_from_table_name, InvestmentsVariableTbl, InvestmentsFixedTbl
+from src.db_manager import SQL, get_class_from_table_name, InvestmentsVariableTbl, InvestmentsFixedTbl
 from datetime import datetime
-from src.preprocessing.api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
+from src.api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
 
 import logging
 
