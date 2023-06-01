@@ -2,9 +2,8 @@ from sqlalchemy import create_engine, Column, String, DateTime, Integer, Float, 
 from sqlalchemy.orm import declarative_base, sessionmaker
 import pandas as pd
 import logging
-from src.preprocessing.api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
-# the path to spi.py changes depending on whether its called from db_manager or dash_inputs
-
+import psycopg2
+from api import SchemaMonzo, SchemaInputs, SchemaInvestmentFixed, SchemaInvestmentVariable
 
 # import src.log
 
@@ -56,7 +55,7 @@ class SpendingTbl(Base):
 
 class BudgetTbl(Base):
     __tablename__ = 'budget'
-    SCHEMA = SchemaBudget()
+    SCHEMA = SchemaInputs()
 
     id = Column(String, primary_key=True)
     locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
@@ -76,7 +75,7 @@ class BudgetTbl(Base):
 
 class AccountsTbl(Base):
     __tablename__ = 'accounts'
-    SCHEMA = SchemaAccounts()
+    SCHEMA = SchemaInputs()
 
     id = Column(String, primary_key=True)
     locals()[SCHEMA.ACCOUNT] = Column(String)
@@ -94,7 +93,7 @@ class AccountsTbl(Base):
 
 class IncomeTbl(Base):
     __tablename__ = 'income'
-    SCHEMA = SchemaIncome
+    SCHEMA = SchemaInputs
 
     id = Column(String, primary_key=True)
     locals()[SCHEMA.TYPE] = Column(String)
