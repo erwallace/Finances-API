@@ -6,6 +6,29 @@ import dash_bootstrap_components as dbc
 
 import plotly.io as pio
 
+from src.preprocessing.db_manager import MonthsTbl
+
+'''
+MONTHLY COMPONENTS LAYOUT
+
+----------------------------
+|  1   |    4     |   7    |
+----------------------------
+|  2   |    5     |        |
+------------------|   8    |
+|  3   |    6     |        |
+----------------------------
+
+1 - title and month selection
+2 - income summary
+3 - investments summary
+4 - bar chart of spending
+5 - all spending data table
+6 - spending timeline chart
+7 - sunburst chart
+8 - spending by subcategory table
+'''
+
 '''
 STATUS:
 
@@ -20,11 +43,11 @@ General
 
 Tabs
 - reduce height
-- change selectyed colour to match theme
+- change selected colour to match theme
 
 Title
 - defualt value is most recent month
-- change title font (bold at the very least
+- change title font (bold at the very least)
 
 Summary Stats
 - decrease width of cards
@@ -77,12 +100,10 @@ def monthly_title():
 
     db = SQL()
 
+    table = Table(MonthsTbl.__tablename__, MonthsTbl.metadata)
     with db.engine.connect() as conn:
-        query = text(f'SELECT * FROM months')
-
-        df = pd.read_sql(sql=query,
-                         con=conn)
-    months = df.sort_values('Date', ascending=False).month_id.unique()
+        df = pd.read_sql(sql=select(table), con=conn)
+    months = df.sort_values('Date', ascending=False).id.unique()
 
     return html.Div([
         html.H1(id='month_title',
