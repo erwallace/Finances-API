@@ -3,49 +3,48 @@ from db_manager import SQL
 from api import *
 
 import logging
+from log import get_logger
+logger = get_logger(__name__)
 
-# import src.log
 
 class pipeline:
 
-    @staticmethod
-    def create_tables_in_db():
-        sql = SQL()
-        sql.create_all_tables()
+    db = SQL()
 
-    @staticmethod
-    def delete_all_db_tables():
-        sql = SQL()
-        sql.delete_all_tables()
+    def create_tables_in_db(self) -> None:
+        ''' creates all tables in the schema '''
+        self.db.create_all_tables()
 
-    @staticmethod
-    def append_to_db(month_id: str):
-        sql = SQL()
+    def delete_all_db_tables(self) -> None:
+        ''' deletes all tables from the schema '''
+        self.db.delete_all_tables()
 
+    def append_to_db(self, month_id: str) -> None:
+        ''' iterate through all tables in schema, appending all non-duplicate rows'''
         mz = Monzo(month_id)
         df_mz, months = mz.preprocess()
-        sql.append_to_db(months, 'months')
-        sql.append_to_db(df_mz, 'spending')
+        self.db.append_to_db(months, 'months')
+        self.db.append_to_db(df_mz, 'spending')
 
         bud = Budget(month_id)
         df_bud = bud.preprocess()
-        sql.append_to_db(df_bud, 'budget')
+        self.db.append_to_db(df_bud, 'budget')
 
         acc = Accounts(month_id)
         df_acc = acc.preprocess()
-        sql.append_to_db(df_acc, 'accounts')
+        self.db.append_to_db(df_acc, 'accounts')
 
         inc = Income(month_id)
         df_inc = inc.preprocess()
-        sql.append_to_db(df_inc, 'income')
+        self.db.append_to_db(df_inc, 'income')
 
         inv = InvestmentVariable(month_id)
         df_inv = inv.preprocess()
-        sql.append_to_db(df_inv, 'investments_variable')
+        self.db.append_to_db(df_inv, 'investments_variable')
 
         inf = InvestmentFixed(month_id)
         df_inf = inf.preprocess()
-        sql.append_to_db(df_inf, 'investments_fixed')
+        self.db.append_to_db(df_inf, 'investments_fixed')
 
     @staticmethod
     def generate_dashboard():
@@ -62,7 +61,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-    assert args.month[:3].upper() in months, f'"{args.month[:3].upper()}" is not a valid month.'
+    if args.month[:3].upper() not in months:
+        raise KeyError(f'"{args.month[:3].upper()}" is not a valid month.')
 
     month_id = f'{args.month[:3].upper()} {args.year[-2:]}'
     logging.info(f'month_id is "{month_id}"')

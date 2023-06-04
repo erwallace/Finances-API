@@ -11,7 +11,8 @@ import pandas as pd
 import numpy as np
 
 import logging
-# import src.log
+from log import get_logger
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -150,7 +151,7 @@ class SchemaInvestmentFixed:
 class Finances:
     MONTH_FORMAT: str = '%b %y'
 
-    def __init__(self, month_id: str):
+    def __init__(self, month_id: str) -> object:
         ''' month_id in the format "MMM YY" '''
         self.month_id = month_id
 
@@ -167,6 +168,23 @@ class Finances:
         extract_MMM_YY = lambda x: datetime.strftime(x, self.MONTH_FORMAT).upper()
 
         return df[self.SCHEMA.DATETIME].apply(extract_MMM_YY)
+
+    def add_category_column(self, df: pd.DataFrame) -> pd.Series:
+        '''adds category column to existing dataframe based on subcategory column and json mapping'''
+
+        # read in configurations from json
+        with open("sub_category.json") as jsn:
+            mapper = jsn.read()
+
+        # decoding the JSON to dictionary
+        sub_category = json.loads(mapper)
+
+        df_subcategories = set(df[self.SCHEMA.SUBCATEGORY])
+        json_subcategories = set(sub_category.keys())
+        diff = df_subcategories.difference(json_subcategories)
+        if diff != set():
+            raise ValueError(f'Monzo statement contains subcategories missing from sub_category.json ({diff})')
+        return df[self.SCHEMA.SUBCATEGORY].map(sub_category)
 
     def add_id_column(self, df: pd.DataFrame) -> pd.Series:
         '''adds id column to existing dataframe based on month_id and index. To be used as primary key'''
@@ -188,19 +206,23 @@ class Monzo(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaMonzo = SchemaMonzo()
 
-    def preprocess(self) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def preprocess(self, DEBUG=pd.DataFrame()) -> tuple[pd.DataFrame, pd.DataFrame]:
         '''loads Monzo file and returns as pandas dataframe'''
+        if os.getenv('DEBUG'):
+            df = DEBUG
+        else:
+            log_folder = os.path.join(os.pardir, 'data', 'statements')
+            dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+            month = datetime.strftime(dt, '%B')
+            year = datetime.strftime(dt, '%Y')
+            file = fnmatch.filter(os.listdir(log_folder), f'MonzoDataExport_{month}_{year}*.csv')
+            if len(file) != 0:
+                raise ValueError(f'No files found in cwd matching MonzoDataExport_{month}_{year}*.csv')
+            elif len(file) == 1:
+                raise ValueError(f'More than one file matches MonzoDataExport_{month}_{year}*.csv - {file}')
+            log_file = os.path.join(log_folder, file[0])
 
-        log_folder = os.path.join(os.pardir, 'data', 'statements')
-        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
-        month = datetime.strftime(dt, '%B')
-        year = datetime.strftime(dt, '%Y')
-        file = fnmatch.filter(os.listdir(log_folder), f'MonzoDataExport_{month}_{year}*.csv')
-        assert len(file) != 0, f'No files found in cwd matching MonzoDataExport_{month}_{year}*.csv'
-        assert len(file) == 1, f'More than one file matches MonzoDataExport_{month}_{year}*.csv - {file}'
-        log_file = os.path.join(log_folder, file[0])
-
-        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+            df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         # add additional information
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df)
@@ -228,23 +250,6 @@ class Monzo(Finances):
 
         return df['tmp'].apply(extract_datetime)
 
-    def add_category_column(self, df: pd.DataFrame) -> pd.Series:
-        '''adds category column to existing dataframe based on subcategory column and json mapping'''
-
-        # read in configurations from json
-        with open("sub_category.json") as jsn:
-            mapper = jsn.read()
-
-        # decoding the JSON to dictionary
-        sub_category = json.loads(mapper)
-
-        df_subcategories = set(df[self.SCHEMA.SUBCATEGORY])
-        json_subcategories = set(sub_category.keys())
-        diff = df_subcategories.difference(json_subcategories)
-        assert diff == set(), f'Monzo statement contains subcategories missing from sub_category.json ({diff})'
-
-        return df[self.SCHEMA.SUBCATEGORY].map(sub_category)
-
     def split_subcategory_payments(self, df: pd.DataFrame) -> pd.DataFrame:
         '''any "subcategory split" payments will be separated into individual rows'''
         df_keep = df[df[self.SCHEMA.SUBCATEGORY_SPLIT].isna()]
@@ -260,6 +265,8 @@ class Monzo(Finances):
                 new_row = row
                 new_row[self.SCHEMA.SUBCATEGORY] = subcategory
                 new_row[self.SCHEMA.SUBCATEGORY_SPLIT] = np.nan
+                new_row[self.SCHEMA.AMOUNT] = value
+                new_row[self.SCHEMA.LOCAL_AMOUNT] = value
 
                 if float(value) > 0:
                     new_row[self.SCHEMA.IN] = value
@@ -277,14 +284,17 @@ class Budget(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInputs = SchemaInputs()
 
-    def preprocess(self) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
         '''loads budget file and returns as pandas dataframe'''
+        if os.getenv('DEBUG'):
+            df = DEBUG
+        else:
+            dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+            mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
-        mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
+            log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
+            df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
-        log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
-        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
         df = df[df[self.SCHEMA.CATEGORY]=='BUDGET'].reset_index(drop=True)
 
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df, self.month_id)
@@ -297,40 +307,25 @@ class Budget(Finances):
 
         return df
 
-    def add_category_column(self, df: pd.DataFrame) -> pd.Series:
-        '''adds category column to existing dataframe based on subcategory column and json mapping'''
-
-        # read in configurations from json
-        with open("sub_category.json") as jsn:
-            mapper = jsn.read()
-
-        # decoding the JSON to dictionary
-        sub_category = json.loads(mapper)
-
-        df_subcategories = set(df[self.SCHEMA.SUBCATEGORY])
-        json_subcategories = set(sub_category.keys())
-        diff = df_subcategories.difference(json_subcategories)
-        assert diff == set(), f'Monzo statement contains subcategories missing from sub_category.json ({diff})'
-
-        return df[self.SCHEMA.SUBCATEGORY].map(sub_category)
-
 
 class Accounts(Finances):
     DATETIME_FORMAT: str = '%d_%y'
     SKIPROWS: int = 1
     SCHEMA: SchemaInputs = SchemaInputs()
 
-    def preprocess(self) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
         '''loads accounts file and returns as pandas dataframe'''
+        if os.getenv('DEBUG'):
+            df = DEBUG
+        else:
+            dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+            mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
-        mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
-
-        log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
-        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+            log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
+            df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
         df = df[df[self.SCHEMA.CATEGORY]=='ACCOUNTS'].reset_index(drop=True)
 
-        df[self.SCHEMA.DATETIME] = dt
+        df[self.SCHEMA.DATETIME] = self.add_datetime_column(df, self.month_id)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
         df[self.SCHEMA.BALANCE] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
@@ -346,14 +341,16 @@ class Income(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInputs = SchemaInputs()
 
-    def preprocess(self) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
         '''loads income file and returns as pandas dataframe'''
+        if os.getenv('DEBUG'):
+            df = DEBUG
+        else:
+            dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+            mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
-        mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
-
-        log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
-        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+            log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
+            df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
         df = df[df[self.SCHEMA.CATEGORY]=='INCOME'].reset_index(drop=True)
 
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df, self.month_id)
@@ -372,14 +369,16 @@ class InvestmentVariable(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInvestmentVariable = SchemaInvestmentVariable()
 
-    def preprocess(self) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
         '''loads investments_variable file and returns as pandas dataframe'''
+        if os.getenv('DEBUG'):
+            df = DEBUG
+        else:
+            dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
+            mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-        dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
-        mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
-
-        log_file = os.path.join(os.pardir, 'data', 'inputs', f'investments_variable_{mm_yy}.csv')
-        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+            log_file = os.path.join(os.pardir, 'data', 'inputs', f'investments_variable_{mm_yy}.csv')
+            df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df, self.month_id)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
@@ -401,11 +400,13 @@ class InvestmentFixed(Finances):
     SCHEMA: SchemaInvestmentFixed = SchemaInvestmentFixed()
 
     # TODO: only need two of duration, purchase date and maturity date. Should calculate the 3rd
-    def preprocess(self) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
         '''loads investments_fixed file and returns as pandas dataframe'''
-
-        log_file = os.path.join(os.pardir, 'data', 'inputs', 'investments_fixed.csv')
-        df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+        if os.getenv('DEBUG'):
+            df = DEBUG
+        else:
+            log_file = os.path.join(os.pardir, 'data', 'inputs', 'investments_fixed.csv')
+            df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df[self.SCHEMA.AMOUNT] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
         df[self.SCHEMA.RETURN] = self.add_return_column(df)
@@ -423,6 +424,7 @@ class InvestmentFixed(Finances):
 
     def add_id_column(self, df: pd.DataFrame) -> pd.Series:
         return df[self.SCHEMA.NAME].astype(str) + df[self.SCHEMA.COMPANY].astype(str) + df[self.SCHEMA.AMOUNT].astype(str) + df[self.SCHEMA.INTEREST].astype(str) + df[self.SCHEMA.DURATION].astype(str) + df[self.SCHEMA.MATURITY_DATE].astype(str)
+
 
 if __name__ == '__main__':
     pass

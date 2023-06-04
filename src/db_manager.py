@@ -7,7 +7,9 @@ import psycopg2
 import os
 from api import SchemaMonzo, SchemaInputs, SchemaInvestmentFixed, SchemaInvestmentVariable
 
-# import src.log
+import logging
+from log import get_logger
+logger = get_logger(__name__)
 
 Base = declarative_base()
 
