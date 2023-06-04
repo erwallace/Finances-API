@@ -1,4 +1,4 @@
-name,company,unit_price,units_owned,date (dd/mm/yy)
-Vanguard LifeStrategy 60% Equity A Inc,AJBell,182,49.2633,28/03/2023
-JPM Natural Resources C Net Acc,AJBell,12,240.712,28/03/2023
-BlackRock Ntrl Resources Gr & Inc D Acc,AJBell,2.4,1282.719,28/03/2023
+name,company,unit_price,units_owned
+Vanguard LifeStrategy 60% Equity A Inc,AJBell,182,49.2633
+JPM Natural Resources C Net Acc,AJBell,12,240.712
+BlackRock Ntrl Resources Gr & Inc D Acc,AJBell,2.4,1282.719
