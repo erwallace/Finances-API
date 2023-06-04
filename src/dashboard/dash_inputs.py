@@ -2,7 +2,7 @@ from sqlalchemy import inspect, select, Table
 import pandas as pd
 from src.db_manager import SQL, get_class_from_table_name, InvestmentsVariableTbl, InvestmentsFixedTbl
 from datetime import datetime
-from src.api import SchemaMonzo, SchemaBudget, SchemaAccounts, SchemaIncome, SchemaInvestmentFixed, SchemaInvestmentVariable
+from src.api import SchemaMonzo, SchemaInputs, SchemaInvestmentFixed, SchemaInvestmentVariable
 
 import logging
 
@@ -24,7 +24,6 @@ def query_db(table_name, month_id):
         df = pd.read_sql(sql=query, con=conn)
 
     return df
-
 
 def query_inv_var(month_id):
 
@@ -91,7 +90,7 @@ def spending_table(month_id: str, dd_mm: bool) -> pd.DataFrame:
 def summary_table(month_id: str, total_row: bool) -> tuple[pd.DataFrame, float, float]:
 
     SCHEMA = SchemaMonzo()
-    SCHEMABudget = SchemaBudget()
+    SCHEMABudget = SchemaInputs()
 
     # import dfs from database
     df = spending_table(month_id, False)
@@ -143,7 +142,7 @@ def summary_table(month_id: str, total_row: bool) -> tuple[pd.DataFrame, float, 
 
 def accounts_table(month_id: str) -> tuple[pd.DataFrame, float]:
 
-    SCHEMA = SchemaAccounts()
+    SCHEMA = SchemaInputs()
 
     df = query_db('accounts', month_id)
 
@@ -156,7 +155,7 @@ def accounts_table(month_id: str) -> tuple[pd.DataFrame, float]:
 
 def income_table(month_id: str) -> pd.DataFrame:
 
-    SCHEMA = SchemaIncome()
+    SCHEMA = SchemaInputs()
 
     df = query_db('income', month_id)
 

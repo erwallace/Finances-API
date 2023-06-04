@@ -1,12 +1,12 @@
-from dashboard_monthly import *
-from palettes import vibrant, create_palette
-
-from dash import Dash, dcc, html, Input, Output
-import dash_bootstrap_components as dbc
+from dashboard.palettes import vibrant, create_palette
 
 import plotly.io as pio
 
-from src.db_manager import MonthsTbl
+from dash import dcc, html, dash_table, Dash, Input, Output
+import dash_bootstrap_components as dbc
+from dash.dash_table.Format import Format, Group, Scheme, Symbol
+
+from db_manager import MonthsTbl
 
 '''
 MONTHLY COMPONENTS LAYOUT

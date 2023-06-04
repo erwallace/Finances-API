@@ -1,6 +1,7 @@
 import argparse
 from db_manager import SQL
 from api import *
+from dashboard.dashboard_combined import my_dashboard
 
 import logging
 from log import get_logger
@@ -48,7 +49,7 @@ class pipeline:
 
     @staticmethod
     def generate_dashboard():
-        pass
+        my_dashboard()
 
 if __name__ == '__main__':
 
