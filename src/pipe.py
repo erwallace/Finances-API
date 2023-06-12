@@ -1,7 +1,7 @@
 import argparse
 from db_manager import SQL
 from api import *
-from dashboard.dashboard_combined import my_dashboard
+from dashboard_combined import my_dashboard
 
 import logging
 from log import get_logger
@@ -53,6 +53,8 @@ class pipeline:
 
 if __name__ == '__main__':
 
+    pipeline.append_to_db(pipeline, 'NOV 22')
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--month", required=True)  # month
     parser.add_argument("-y", "--year", required=True)  # year
@@ -69,9 +71,9 @@ if __name__ == '__main__':
     logging.info(f'month_id is "{month_id}"')
 
     if args.create:
-        pipeline.create_tables_in_db()
+        pipeline.create_tables_in_db(pipeline)
     if args.append:
-        pipeline.append_to_db(month_id)
+        pipeline.append_to_db(pipeline, month_id)
     if args.dashboard:
         pipeline.generate_dashboard()
 

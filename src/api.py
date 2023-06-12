@@ -211,14 +211,14 @@ class Monzo(Finances):
         if os.getenv('DEBUG'):
             df = DEBUG
         else:
-            log_folder = os.path.join(os.pardir, 'data', 'statements')
+            log_folder = os.path.join('data', 'statements')
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             month = datetime.strftime(dt, '%B')
             year = datetime.strftime(dt, '%Y')
             file = fnmatch.filter(os.listdir(log_folder), f'MonzoDataExport_{month}_{year}*.csv')
-            if len(file) != 0:
-                raise ValueError(f'No files found in cwd matching MonzoDataExport_{month}_{year}*.csv')
-            elif len(file) == 1:
+            if len(file) == 0:
+                raise ValueError(f'No files found in {log_folder} matching MonzoDataExport_{month}_{year}*.csv')
+            elif len(file) > 1:
                 raise ValueError(f'More than one file matches MonzoDataExport_{month}_{year}*.csv - {file}')
             log_file = os.path.join(log_folder, file[0])
 
@@ -280,7 +280,7 @@ class Monzo(Finances):
 
 class Budget(Finances):
 
-    DATETIME_FORMAT: str = '%d_%y'
+    DATETIME_FORMAT: str = '%m_%y'
     SKIPROWS: int = 1
     SCHEMA: SchemaInputs = SchemaInputs()
 
@@ -292,7 +292,7 @@ class Budget(Finances):
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-            log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
+            log_file = os.path.join('data', 'inputs', f'inputs_{mm_yy}.csv')
             df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df = df[df[self.SCHEMA.CATEGORY]=='BUDGET'].reset_index(drop=True)
@@ -309,7 +309,7 @@ class Budget(Finances):
 
 
 class Accounts(Finances):
-    DATETIME_FORMAT: str = '%d_%y'
+    DATETIME_FORMAT: str = '%m_%y'
     SKIPROWS: int = 1
     SCHEMA: SchemaInputs = SchemaInputs()
 
@@ -321,7 +321,7 @@ class Accounts(Finances):
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-            log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
+            log_file = os.path.join('data', 'inputs', f'inputs_{mm_yy}.csv')
             df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
         df = df[df[self.SCHEMA.CATEGORY]=='ACCOUNTS'].reset_index(drop=True)
 
@@ -337,7 +337,7 @@ class Accounts(Finances):
 
 
 class Income(Finances):
-    DATETIME_FORMAT: str = '%d_%y'
+    DATETIME_FORMAT: str = '%m_%y'
     SKIPROWS: int = 1
     SCHEMA: SchemaInputs = SchemaInputs()
 
@@ -349,7 +349,7 @@ class Income(Finances):
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-            log_file = os.path.join(os.pardir, 'data', 'inputs', f'inputs_{mm_yy}.csv')
+            log_file = os.path.join('data', 'inputs', f'inputs_{mm_yy}.csv')
             df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
         df = df[df[self.SCHEMA.CATEGORY]=='INCOME'].reset_index(drop=True)
 
@@ -365,7 +365,7 @@ class Income(Finances):
 
 
 class InvestmentVariable(Finances):
-    DATETIME_FORMAT: str = '%d_%y'
+    DATETIME_FORMAT: str = '%m_%y'
     SKIPROWS: int = 1
     SCHEMA: SchemaInvestmentVariable = SchemaInvestmentVariable()
 
@@ -377,8 +377,8 @@ class InvestmentVariable(Finances):
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-            log_file = os.path.join(os.pardir, 'data', 'inputs', f'investments_variable_{mm_yy}.csv')
-            df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
+            log_file = os.path.join('data', 'inputs', f'investments_variable_{mm_yy}.csv')
+            df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial, index_col=False)
 
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df, self.month_id)
         df[self.SCHEMA.MONTH_ID] = self.add_month_id_column(df)
@@ -405,7 +405,7 @@ class InvestmentFixed(Finances):
         if os.getenv('DEBUG'):
             df = DEBUG
         else:
-            log_file = os.path.join(os.pardir, 'data', 'inputs', 'investments_fixed.csv')
+            log_file = os.path.join('data', 'inputs', 'investments_fixed.csv')
             df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df[self.SCHEMA.AMOUNT] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])

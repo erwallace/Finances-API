@@ -1,12 +1,19 @@
-from dashboard.palettes import vibrant, create_palette
+from palettes import vibrant, create_palette
 
 import plotly.io as pio
+import plotly.graph_objects as go
 
 from dash import dcc, html, dash_table, Dash, Input, Output
 import dash_bootstrap_components as dbc
 from dash.dash_table.Format import Format, Group, Scheme, Symbol
 
-from db_manager import MonthsTbl
+from db_manager import MonthsTbl, SQL
+from dash_inputs import *
+
+import pandas as pd
+import calendar
+from datetime import datetime
+import numpy as np
 
 '''
 MONTHLY COMPONENTS LAYOUT

@@ -176,7 +176,7 @@ class SQL:
         if os.getenv("DEBUG") == 'True':
             address = r'sqlite:///data/debug.db'
         else:
-            address = r'sqlite:///../data/spending.db'
+            address = r'sqlite:///data/spending.db'
 
         self.engine = create_engine(address)
         self.Session = sessionmaker(bind=self.engine)
@@ -197,12 +197,15 @@ class SQL:
     def create_all_tables(self) -> None:
         ''' creates all tables in the schema '''
         tbls = ['months', 'spending', 'budget', 'accounts', 'income', 'investments_variable', 'investments_fixed']
-
+        for tbl in tbls:
+            self.create_table(tbl)
+        '''
         for tbl in tbls:
             try:
                 self.create_table(tbl)
             except:
                 logging.warning(f'table already exists: {tbl}')
+        '''
 
     def delete_table(self, table_name: str) -> None:
         '''
@@ -277,4 +280,8 @@ def get_class_from_table_name(table_name: str) -> object:
 
 
 if __name__ == '__main__':
+    db = SQL()
+    db.delete_all_tables()
+    db.create_all_tables()
+
     pass
