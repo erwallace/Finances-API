@@ -44,7 +44,6 @@ General
 - play around with colour schemes
 - can I round the edges of cards? add shadows? make background slightly darker to make them pop?
 
-- move to sqlite3 database
 - create "fake" data to be displayed in github
 - write README explanation of dashboard
 
@@ -53,15 +52,11 @@ Tabs
 - change selected colour to match theme
 
 Title
-- defualt value is most recent month
 - change title font (bold at the very least)
 
 Summary Stats
-- decrease width of cards
-- add title to seach summary (centered)
+- add title to search summary (centered)
 - play with font and size of text
-- "bills" is not correctly referencing - always £0
-- investments tab isn't correctly updating 
 - can I set position of number and delta independently?
 
 Bar Chart
@@ -72,7 +67,6 @@ Bar Chart
 
 All Spending Table
 - change subcategory to theme colour
-- ensure there is enough Income (this is for preprocessing)
 
 Timeline Spending
 - change colour scheme to match theme
@@ -85,14 +79,6 @@ Sunburst Chart
 
 Spending by Subcategory
 - colour code subcategories (may need a darker theme for this to stand out)
-
-
-
-
-
-- spending_by_subcategory is shwoing too many rows but not enough columns
-- sunburst is not displaying at all
-- where can i find error messages??
 '''
 
 subcategory_palette = create_palette(vibrant)
