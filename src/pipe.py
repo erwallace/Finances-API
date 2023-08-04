@@ -53,8 +53,6 @@ class pipeline:
 
 if __name__ == '__main__':
 
-    pipeline.append_to_db(pipeline, 'NOV 22')
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--month", required=True)  # month
     parser.add_argument("-y", "--year", required=True)  # year
