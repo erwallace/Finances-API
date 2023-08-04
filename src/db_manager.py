@@ -1,5 +1,4 @@
-from sqlalchemy import create_engine, Column, String, DateTime, Integer, Float, ForeignKey, select, inspect, Table, \
-    TIMESTAMP
+from sqlalchemy import delete, create_engine, Column, String, DateTime, Integer, Float, ForeignKey, select, inspect, Table
 from sqlalchemy.orm import declarative_base, sessionmaker
 import pandas as pd
 import logging
@@ -33,7 +32,7 @@ class SpendingTbl(Base):
     SCHEMA = SchemaMonzo()
 
     id = Column(String, primary_key=True)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.DATETIME] = Column(DateTime)
     locals()[SCHEMA.TYPE] = Column(String)
     locals()[SCHEMA.NAME] = Column(String)
@@ -64,7 +63,7 @@ class BudgetTbl(Base):
     SCHEMA = SchemaInputs()
 
     id = Column(String, primary_key=True)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.DATETIME] = Column(DateTime)
     locals()[SCHEMA.CATEGORY] = Column(String)
     locals()[SCHEMA.SUBCATEGORY] = Column(String)
@@ -87,7 +86,7 @@ class AccountsTbl(Base):
     id = Column(String, primary_key=True)
     locals()[SCHEMA.ACCOUNT] = Column(String)
     locals()[SCHEMA.DATETIME] = Column(DateTime)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.BALANCE] = Column(Integer)
 
     def __repr__(self):
@@ -106,7 +105,7 @@ class IncomeTbl(Base):
     id = Column(String, primary_key=True)
     locals()[SCHEMA.TYPE] = Column(String)
     locals()[SCHEMA.DATETIME] = Column(DateTime)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.AMOUNT] = Column(Integer)
 
     def __repr__(self):
@@ -125,7 +124,7 @@ class InvestmentsVariableTbl(Base):
     id = Column(String, primary_key=True)
     locals()[SCHEMA.NAME] = Column(String)
     locals()[SCHEMA.DATETIME] = Column(DateTime)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.COMPANY] = Column(String)
     locals()[SCHEMA.UNIT_PRICE] = Column(Float)
     locals()[SCHEMA.UNITS_OWNED] = Column(Float)
@@ -153,8 +152,8 @@ class InvestmentsFixedTbl(Base):
     locals()[SCHEMA.AMOUNT] = Column(Integer)
     locals()[SCHEMA.INTEREST] = Column(Float)
     locals()[SCHEMA.DURATION] = Column(Integer)
-    locals()[SCHEMA.PURCHASE_DATE] = Column(TIMESTAMP)
-    locals()[SCHEMA.MATURITY_DATE] = Column(TIMESTAMP)
+    locals()[SCHEMA.PURCHASE_DATE] = Column(DateTime)
+    locals()[SCHEMA.MATURITY_DATE] = Column(DateTime)
     locals()[SCHEMA.RETURN] = Column(Integer)
 
     def __repr__(self):
@@ -176,10 +175,11 @@ class SQL:
         if os.getenv("DEBUG") == 'True':
             address = r'sqlite:///data/debug.db'
         else:
-            address = r'sqlite:///../data/spending.db'
+            address = r'sqlite:///data/spending.db'
 
         self.engine = create_engine(address)
-        self.Session = sessionmaker(bind=self.engine)
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
         logging.info(f'SQL connection established to {address}')
 
     def create_table(self, table_name: str) -> None:
@@ -197,12 +197,15 @@ class SQL:
     def create_all_tables(self) -> None:
         ''' creates all tables in the schema '''
         tbls = ['months', 'spending', 'budget', 'accounts', 'income', 'investments_variable', 'investments_fixed']
-
+        for tbl in tbls:
+            self.create_table(tbl)
+        '''
         for tbl in tbls:
             try:
                 self.create_table(tbl)
             except:
                 logging.warning(f'table already exists: {tbl}')
+        '''
 
     def delete_table(self, table_name: str) -> None:
         '''
@@ -228,6 +231,14 @@ class SQL:
                 self.delete_table(tbl)
             except:
                 logging.warning(f'table not found, cannot be deleted: {tbl}')
+
+    def delete_month(self, month_id: str) -> None:
+        ''' deletes a specific month from all tables '''
+        table = Table(MonthsTbl.__tablename__, MonthsTbl.metadata)
+        with db.engine.connect() as conn:
+            stmt = delete(table).where(table.c.id==month_id)
+            conn.execute(stmt)
+        logging.info(f'{month_id} has been deleted from all tables.')
 
     def append_to_db(self, df: pd.DataFrame, table_name: str) -> None:
         '''
@@ -277,4 +288,9 @@ def get_class_from_table_name(table_name: str) -> object:
 
 
 if __name__ == '__main__':
+    db = SQL()
+    db.delete_month('JUL 23')
+    db.delete_all_tables()
+    db.create_all_tables()
+
     pass

@@ -1,8 +1,8 @@
-from sqlalchemy import inspect, select, Table
+from sqlalchemy import inspect, select, Table, and_
 import pandas as pd
-from src.db_manager import SQL, get_class_from_table_name, InvestmentsVariableTbl, InvestmentsFixedTbl
+from db_manager import SQL, get_class_from_table_name, InvestmentsVariableTbl, InvestmentsFixedTbl
 from datetime import datetime
-from src.api import SchemaMonzo, SchemaInputs, SchemaInvestmentFixed, SchemaInvestmentVariable
+from api import SchemaMonzo, SchemaInputs, SchemaInvestmentFixed, SchemaInvestmentVariable
 
 import logging
 
@@ -57,9 +57,7 @@ def query_inv_fix(month_id):
     table = Table(InvestmentsFixedTbl.__tablename__, InvestmentsFixedTbl.metadata)
     with db.engine.connect() as conn:
         current_date = dt_month_id + pd.DateOffset(months=1)
-        # TODO: query currently not working
-        query = select(table).where((table.c.Matures > current_date) & (table.c.Purchased < current_date))
-        # query = select(table).filter(and_(table.c.Matures > current_date, table.c.Purchased < current_date))
+        query = select(table).filter(and_(table.c.Matures >= current_date, table.c.Purchased <= current_date))
         inv_fix = pd.read_sql(sql=query, con=conn)
 
     return inv_fix
