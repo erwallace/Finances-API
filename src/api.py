@@ -292,7 +292,14 @@ class Budget(Finances):
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-            log_file = os.path.join('data', 'inputs', f'inputs_{mm_yy}.csv')
+            log_folder = os.path.join('data', 'inputs')
+            file = fnmatch.filter(os.listdir(log_folder),  f'inputs_{mm_yy}*.csv')
+            if len(file) == 0:
+                raise ValueError(f'No files found in {log_folder} matching inputs_{mm_yy}*.csv')
+            elif len(file) > 1:
+                raise ValueError(f'More than one file matches inputs_{mm_yy}*.csv - {file}')
+            log_file = os.path.join(log_folder, file[0])
+
             df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df = df[df[self.SCHEMA.CATEGORY]=='BUDGET'].reset_index(drop=True)
@@ -321,7 +328,14 @@ class Accounts(Finances):
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-            log_file = os.path.join('data', 'inputs', f'inputs_{mm_yy}.csv')
+            log_folder = os.path.join('data', 'inputs')
+            file = fnmatch.filter(os.listdir(log_folder), f'inputs_{mm_yy}*.csv')
+            if len(file) == 0:
+                raise ValueError(f'No files found in {log_folder} matching inputs_{mm_yy}*.csv')
+            elif len(file) > 1:
+                raise ValueError(f'More than one file matches inputs_{mm_yy}*.csv - {file}')
+            log_file = os.path.join(log_folder, file[0])
+
             df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
         df = df[df[self.SCHEMA.CATEGORY]=='ACCOUNTS'].reset_index(drop=True)
 
@@ -349,7 +363,14 @@ class Income(Finances):
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-            log_file = os.path.join('data', 'inputs', f'inputs_{mm_yy}.csv')
+            log_folder = os.path.join('data', 'inputs')
+            file = fnmatch.filter(os.listdir(log_folder), f'inputs_{mm_yy}*.csv')
+            if len(file) == 0:
+                raise ValueError(f'No files found in {log_folder} matching inputs_{mm_yy}*.csv')
+            elif len(file) > 1:
+                raise ValueError(f'More than one file matches inputs_{mm_yy}*.csv - {file}')
+            log_file = os.path.join(log_folder, file[0])
+
             df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
         df = df[df[self.SCHEMA.CATEGORY]=='INCOME'].reset_index(drop=True)
 
@@ -377,7 +398,13 @@ class InvestmentVariable(Finances):
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
-            log_file = os.path.join('data', 'inputs', f'investments_variable_{mm_yy}.csv')
+            log_folder = os.path.join('data', 'inputs')
+            file = fnmatch.filter(os.listdir(log_folder), f'investments_variable_{mm_yy}*.csv')
+            if len(file) == 0:
+                raise ValueError(f'No files found in {log_folder} matching investments_variable_{mm_yy}*.csv')
+            elif len(file) > 1:
+                raise ValueError(f'More than one file matches investments_variable_{mm_yy}*.csv - {file}')
+            log_file = os.path.join(log_folder, file[0])
             df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial, index_col=False)
 
         df[self.SCHEMA.DATETIME] = self.add_datetime_column(df, self.month_id)
