@@ -411,6 +411,8 @@ class InvestmentFixed(Finances):
         df[self.SCHEMA.AMOUNT] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])
         df[self.SCHEMA.RETURN] = self.add_return_column(df)
         df[self.SCHEMA.ID] = self.add_id_column(df)
+        df[self.SCHEMA.PURCHASE_DATE] = pd.to_datetime(df[self.SCHEMA.PURCHASE_DATE], format='%d/%m/%Y')
+        df[self.SCHEMA.MATURITY_DATE] = pd.to_datetime(df[self.SCHEMA.MATURITY_DATE], format='%d/%m/%Y')
 
         df = df[self.SCHEMA.df_columns_final]
 
