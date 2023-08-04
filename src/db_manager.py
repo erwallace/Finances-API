@@ -33,7 +33,7 @@ class SpendingTbl(Base):
     SCHEMA = SchemaMonzo()
 
     id = Column(String, primary_key=True)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.DATETIME] = Column(DateTime)
     locals()[SCHEMA.TYPE] = Column(String)
     locals()[SCHEMA.NAME] = Column(String)
@@ -64,7 +64,7 @@ class BudgetTbl(Base):
     SCHEMA = SchemaInputs()
 
     id = Column(String, primary_key=True)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.DATETIME] = Column(DateTime)
     locals()[SCHEMA.CATEGORY] = Column(String)
     locals()[SCHEMA.SUBCATEGORY] = Column(String)
@@ -87,7 +87,7 @@ class AccountsTbl(Base):
     id = Column(String, primary_key=True)
     locals()[SCHEMA.ACCOUNT] = Column(String)
     locals()[SCHEMA.DATETIME] = Column(DateTime)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.BALANCE] = Column(Integer)
 
     def __repr__(self):
@@ -106,7 +106,7 @@ class IncomeTbl(Base):
     id = Column(String, primary_key=True)
     locals()[SCHEMA.TYPE] = Column(String)
     locals()[SCHEMA.DATETIME] = Column(DateTime)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.AMOUNT] = Column(Integer)
 
     def __repr__(self):
@@ -125,7 +125,7 @@ class InvestmentsVariableTbl(Base):
     id = Column(String, primary_key=True)
     locals()[SCHEMA.NAME] = Column(String)
     locals()[SCHEMA.DATETIME] = Column(DateTime)
-    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id'))
+    locals()[SCHEMA.MONTH_ID] = Column(String, ForeignKey('months.id', ondelete='CASCADE'))
     locals()[SCHEMA.COMPANY] = Column(String)
     locals()[SCHEMA.UNIT_PRICE] = Column(Float)
     locals()[SCHEMA.UNITS_OWNED] = Column(Float)
