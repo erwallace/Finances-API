@@ -1,5 +1,4 @@
-from sqlalchemy import create_engine, Column, String, DateTime, Integer, Float, ForeignKey, select, inspect, Table, \
-    TIMESTAMP
+from sqlalchemy import delete, create_engine, Column, String, DateTime, Integer, Float, ForeignKey, select, inspect, Table
 from sqlalchemy.orm import declarative_base, sessionmaker
 import pandas as pd
 import logging
@@ -153,8 +152,8 @@ class InvestmentsFixedTbl(Base):
     locals()[SCHEMA.AMOUNT] = Column(Integer)
     locals()[SCHEMA.INTEREST] = Column(Float)
     locals()[SCHEMA.DURATION] = Column(Integer)
-    locals()[SCHEMA.PURCHASE_DATE] = Column(TIMESTAMP)
-    locals()[SCHEMA.MATURITY_DATE] = Column(TIMESTAMP)
+    locals()[SCHEMA.PURCHASE_DATE] = Column(DateTime)
+    locals()[SCHEMA.MATURITY_DATE] = Column(DateTime)
     locals()[SCHEMA.RETURN] = Column(Integer)
 
     def __repr__(self):
@@ -179,7 +178,8 @@ class SQL:
             address = r'sqlite:///data/spending.db'
 
         self.engine = create_engine(address)
-        self.Session = sessionmaker(bind=self.engine)
+        Session = sessionmaker(bind=self.engine)
+        self.session = Session()
         logging.info(f'SQL connection established to {address}')
 
     def create_table(self, table_name: str) -> None:
@@ -232,6 +232,14 @@ class SQL:
             except:
                 logging.warning(f'table not found, cannot be deleted: {tbl}')
 
+    def delete_month(self, month_id: str) -> None:
+        ''' deletes a specific month from all tables '''
+        table = Table(MonthsTbl.__tablename__, MonthsTbl.metadata)
+        with db.engine.connect() as conn:
+            stmt = delete(table).where(table.c.id==month_id)
+            conn.execute(stmt)
+        logging.info(f'{month_id} has been deleted from all tables.')
+
     def append_to_db(self, df: pd.DataFrame, table_name: str) -> None:
         '''
         Appends df to specified table_name. Only rows not already present in the database will be appended.
@@ -281,6 +289,7 @@ def get_class_from_table_name(table_name: str) -> object:
 
 if __name__ == '__main__':
     db = SQL()
+    db.delete_month('JUL 23')
     db.delete_all_tables()
     db.create_all_tables()
 
