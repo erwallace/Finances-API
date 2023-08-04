@@ -40,16 +40,11 @@ MONTHLY COMPONENTS LAYOUT
 STATUS:
 
 General
-- where can I find error messages??
 - play around with colour schemes
-- can I round the edges of cards? add shadows? make background slightly darker to make them pop?
+- can I round the edges of cards? add shadows?
 
 - create "fake" data to be displayed in github
 - write README explanation of dashboard
-
-Tabs
-- reduce height
-- change selected colour to match theme
 
 Title
 - change title font (bold at the very least)
@@ -65,9 +60,6 @@ Bar Chart
 - hovertemplate text for categories tab
 - decrease size of y axis labels (use abbreviations? just label with category?
 
-All Spending Table
-- change subcategory to theme colour
-
 Timeline Spending
 - change colour scheme to match theme
 - change x axis labels to dd mmm
@@ -76,9 +68,6 @@ Timeline Spending
 
 Sunburst Chart
 - space out sub/category toggles
-
-Spending by Subcategory
-- colour code subcategories (may need a darker theme for this to stand out)
 '''
 
 subcategory_palette = create_palette(vibrant)
@@ -103,7 +92,9 @@ def monthly_title():
                 children='Monthly Spending'),
         dcc.Dropdown(id='month_selection',
                      options=months,
-                     placeholder="Select a month")
+                     # placeholder="Select a month",
+                     value=months[0]
+                     )
     ])
 
 # 2. INCOME SUMMARY
@@ -121,7 +112,9 @@ def _update_income_summary(month_id):
         taxes_str += f'{row.Type}: £{abs(row.Amount):.2f},<br>'
 
     summary, _, monthly_spending = summary_table(month_id, total_row=False)
-    bills = summary[summary.Subcategory == 'Bills'].Budget.sum()
+
+    df_budget = query_db('budget', month_id)
+    bills = -df_budget.loc[df_budget.Category=='Bills', 'Budget'].sum()/100
 
     fig = go.Figure()
 
@@ -327,7 +320,23 @@ def all_spending_table():
                                         {'if': {'column_id': 'Out'},'width': '11%'},
                                         {'if': {'column_id': 'Balance'},'width': '13%'}],
                 style_data_conditional=[{'if': {'filter_query': '{In} > 0', 'column_id':'In'}, 'color':'green'},
-                                        {'if': {'filter_query': '{Out} > 0', 'column_id':'Out'}, 'color':'red'}],
+                                        {'if': {'filter_query': '{Out} > 0', 'column_id':'Out'}, 'color':'red'},
+                                        {'if': {'filter_query': '{Subcategory} = Income', 'column_id':'Subcategory'}, 'color':'green'},
+                                        {'if': {'filter_query': '{Subcategory} = Transport', 'column_id':'Subcategory'}, 'color':'#A7226E'},
+                                        {'if': {'filter_query': '{Subcategory} = Car', 'column_id':'Subcategory'}, 'color':'#D391B7'},
+                                        {'if': {'filter_query': '{Subcategory} = Groceries', 'column_id':'Subcategory'}, 'color':'#EC2049'},
+                                        {'if': {'filter_query': '{Subcategory} = Snacks', 'column_id':'Subcategory'}, 'color':'#F04D6D'},
+                                        {'if': {'filter_query': '{Subcategory} = Lunch', 'column_id':'Subcategory'}, 'color':'#F47992'},
+                                        {'if': {'filter_query': '{Subcategory} = Alcohol', 'column_id':'Subcategory'}, 'color':'#FBD2DB'},
+                                        {'if': {'filter_query': '{Subcategory} = Shopping', 'column_id':'Subcategory'}, 'color':'#F26B38'},
+                                        {'if': {'filter_query': '{Subcategory} = Clothes', 'column_id':'Subcategory'}, 'color':'#F58960'},
+                                        {'if': {'filter_query': '{Subcategory} = Electronics', 'column_id':'Subcategory'}, 'color':'#F7A688'},
+                                        {'if': {'filter_query': '{Subcategory} = Gifts', 'column_id':'Subcategory'}, 'color':'#FCE1D7'},
+                                        {'if': {'filter_query': '{Subcategory} = Entertainment', 'column_id':'Subcategory'}, 'color':'#F7DB47'},
+                                        {'if': {'filter_query': '{Subcategory} = Holidays', 'column_id':'Subcategory'}, 'color':'#2F9599'},
+                                        {'if': {'filter_query': '{Subcategory} = TOTAL', 'column_id':'Subcategory'}, 'color':'black'},
+                                        {'if': {'filter_query': '{Subcategory} contains Eating','column_id':'Subcategory'},'color':'#F7A6B6'},
+                                        {'if': {'filter_query': '{Subcategory} contains Personal', 'column_id':'Subcategory'}, 'color':'#FAC4AF'}],
             )
 
 def _update_all_spending_table(month_id):
@@ -362,6 +371,7 @@ def _update_timeline_chart(month_id):
         go.Scatter(name='Spending',
                    x=df.Date,
                    y=df.Balance,
+                   line={'color':subcategory_palette['Snacks']},
                    hovertemplate='£%{y:.2f}'))
 
     fig.add_trace(
@@ -481,23 +491,22 @@ def spending_by_subcategory():
                                 {'if': {'column_id': 'Diff.'},'width': '15%'}],
         style_data_conditional=[{'if': {'filter_query': '{Diff.} > 0', 'column_id':'Diff.'}, 'color':'green'},
                                 {'if': {'filter_query': '{Diff.} < 0', 'column_id':'Diff.'}, 'color':'red'},
-                                # there must be a way to do this with a colour mapping
                                 {'if': {'filter_query': '{Subcategory} = Income', 'column_id':'Subcategory'}, 'color':'green'},
-                                #{'if': {'filter_query': '{Subcategory} = Transport', 'column_id':'Subcategory'}, 'color':subcategory_palette['Transport']},
-                                #{'if': {'filter_query': '{Subcategory} = Car', 'column_id':'Subcategory'}, 'color':subcategory_palette['Car']},
-                                #{'if': {'filter_query': '{Subcategory} = Groceries', 'column_id':'Subcategory'}, 'color':subcategory_palette['Groceries']},
-                                #{'if': {'filter_query': '{Subcategory} = Snacks', 'column_id':'Subcategory'}, 'color':subcategory_palette['Snacks']},
-                                #{'if': {'filter_query': '{Subcategory} = Lunch', 'column_id':'Subcategory'}, 'color':subcategory_palette['Lunch']},
-                                #{'if': {'filter_query': '{Subcategory} = Eating out', 'column_id':'Subcategory'}, 'color':subcategory_palette['Eating out']},
-                                #{'if': {'filter_query': '{Subcategory} = Alcohol', 'column_id':'Subcategory'}, 'color':subcategory_palette['Alcohol']},
-                                #{'if': {'filter_query': '{Subcategory} = Shopping', 'column_id':'Subcategory'}, 'color':subcategory_palette['Shopping']},
-                                #{'if': {'filter_query': '{Subcategory} = Clothes', 'column_id':'Subcategory'}, 'color':subcategory_palette['Clothes']},
-                                #{'if': {'filter_query': '{Subcategory} = Electronics', 'column_id':'Subcategory'}, 'color':subcategory_palette['Electronics']},
-                                #{'if': {'filter_query': '{Subcategory} = Personal care', 'column_id':'Subcategory'}, 'color':subcategory_palette['Personal care']},
-                                #{'if': {'filter_query': '{Subcategory} = Gifts', 'column_id':'Subcategory'}, 'color':subcategory_palette['Gifts']},
-                                #{'if': {'filter_query': '{Subcategory} = Entertainment', 'column_id':'Subcategory'}, 'color':subcategory_palette['Entertainment']},
-                                #{'if': {'filter_query': '{Subcategory} = Holidays', 'column_id':'Subcategory'}, 'color':subcategory_palette['Holidays']},
-                                #{'if': {'filter_query': '{Subcategory} = TOTAL', 'column_id':'Subcategory'}, 'color':'black'},
+                                {'if': {'filter_query': '{Subcategory} = Transport', 'column_id':'Subcategory'}, 'color':'#A7226E'},
+                                {'if': {'filter_query': '{Subcategory} = Car', 'column_id':'Subcategory'}, 'color':'#D391B7'},
+                                {'if': {'filter_query': '{Subcategory} = Groceries', 'column_id':'Subcategory'}, 'color':'#EC2049'},
+                                {'if': {'filter_query': '{Subcategory} = Snacks', 'column_id':'Subcategory'}, 'color':'#F04D6D'},
+                                {'if': {'filter_query': '{Subcategory} = Lunch', 'column_id':'Subcategory'}, 'color':'#F47992'},
+                                {'if': {'filter_query': '{Subcategory} = Alcohol', 'column_id':'Subcategory'}, 'color':'#FBD2DB'},
+                                {'if': {'filter_query': '{Subcategory} = Shopping', 'column_id':'Subcategory'}, 'color':'#F26B38'},
+                                {'if': {'filter_query': '{Subcategory} = Clothes', 'column_id':'Subcategory'}, 'color':'#F58960'},
+                                {'if': {'filter_query': '{Subcategory} = Electronics', 'column_id':'Subcategory'}, 'color':'#F7A688'},
+                                {'if': {'filter_query': '{Subcategory} = Gifts', 'column_id':'Subcategory'}, 'color':'#FCE1D7'},
+                                {'if': {'filter_query': '{Subcategory} = Entertainment', 'column_id':'Subcategory'}, 'color':'#F7DB47'},
+                                {'if': {'filter_query': '{Subcategory} = Holidays', 'column_id':'Subcategory'}, 'color':'#2F9599'},
+                                {'if': {'filter_query': '{Subcategory} = TOTAL', 'column_id':'Subcategory'}, 'color':'black'},
+                                {'if': {'filter_query': '{Subcategory} contains Eating','column_id':'Subcategory'},'color':'#F7A6B6'},
+                                {'if': {'filter_query': '{Subcategory} contains Personal', 'column_id':'Subcategory'}, 'color':'#FAC4AF'},
                                 ],
         page_size=20)
 
@@ -563,10 +572,11 @@ def add_tabs():
     return dbc.Row([
         dcc.Tabs(id='dashboard_selection_tabs',
                  value='monthly_tab',
+                 style={'height':'4vh'},
                  children=[
-                     dcc.Tab(label='Monthly', value='monthly_tab'),
-                     dcc.Tab(label='Historic', value='historic_tab'),
-                     dcc.Tab(label='Investments', value='investments_tab')]
+                     dcc.Tab(label='Monthly', value='monthly_tab', selected_style={'background':'#F2F2F2'}),
+                     dcc.Tab(label='Historic', value='historic_tab', selected_style={'background':'#F2F2F2'}),
+                     dcc.Tab(label='Investments', value='investments_tab', selected_style={'background':'#F2F2F2'})]
                  )
     ])
 
@@ -581,12 +591,14 @@ def _tab_selection(tab):
 def my_dashboard():
     pio.templates.default = "plotly"
 
-    app = Dash(external_stylesheets=[dbc.themes.COSMO])
+    # suppressed callback exceptions because ids of plots aren't give inn app.layout due to being called from add_tabs() function.
+    app = Dash(external_stylesheets=[dbc.themes.COSMO], suppress_callback_exceptions=True)
 
     app.layout = html.Div([
         add_tabs(),
         html.Div(id='selected_tab'),
         ],
+    style={'backgroundColor':'#F2F2F2'},
     className='dbc')
 
     @app.callback(
@@ -645,7 +657,7 @@ def my_dashboard():
         Input(component_id='sunburst_radio_item', component_property='value'),
         Input(component_id='month_selection', component_property='value')
     )
-    def update_pie_plot(spend_budget, month_id):
+    def update_sunburst_plot(spend_budget, month_id):
         return _update_sunburst_chart(spend_budget, month_id)
 
     # 8. SPENDING BY SUBCATEGORY TABLE
