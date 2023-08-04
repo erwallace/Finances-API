@@ -1,0 +1,98 @@
+Transaction ID,Date,Time,Type,Name,Emoji,Category,Amount,Currency,Local amount,Local currency,Notes and #tags,Address,Receipt,Description,Category split,Money Out,Money In
+tx_0000AXElnnQ4gGUlULi5nV,01/07/2023,03:03:42,Account interest,,,Income,1.64,GBP,1.64,GBP,,,,Interest for June 2023,,,1.64
+tx_0000AXFI6LpUgH0FQ6AFkH,01/07/2023,09:05:37,Card payment,Post Office,📮,Shopping,-1.60,GBP,-1.60,GBP,Post film,102-104 Saint Aldate's,,POST OFFICE SELF SERVE OXFORD        GBR,,-1.60,
+tx_0000AXFk1iJqR2KJkY1u4H,01/07/2023,14:18:31,Card payment,Pret,☕,Lunch,-5.75,GBP,-5.75,GBP,,London Stansted Airport,,PRET A MANGER          LONDON        GBR,,-5.75,
+tx_0000AXIp1LWOHLkGyhKW3t,03/07/2023,01:58:36,Faster payment,WALLACE ERS,,Transfers,125.00,GBP,125.00,GBP,HOLIDAY,,,HOLIDAY,,,125.00
+tx_0000AXIp1LmhIi3u2QcoQz,03/07/2023,01:58:36,Faster payment,WALLACE ERS,,Income,700.00,GBP,700.00,GBP,MONTHLY BUDGET,,,MONTHLY BUDGET,,,700.00
+tx_0000AXIp1LnPG4c89hMNaE,03/07/2023,01:58:36,Faster payment,WALLACE ERS,,Transfers,100.00,GBP,100.00,GBP,RAINY DAY FUND,,,RAINY DAY FUND,,,100.00
+tx_0000AXIp1MVibKnm2u1UeX,03/07/2023,01:58:36,Faster payment,WALLACE ERS,,Transfers,50.00,GBP,50.00,GBP,TREATS,,,TREATS,,,50.00
+tx_0000AXItOL3cZNSYGCl3sP,03/07/2023,02:47:35,Direct Debit,PureGym,,Personal care,-29.99,GBP,-29.99,GBP,013100257056030004,,,013100257056030004,,-29.99,
+tx_0000AXJmHrNfUN4d9oCDIH,03/07/2023,13:02:41,Pot transfer,Rainy Day Pot,,Transfers,-50.00,GBP,-50.00,GBP,,,,,,-50.00,
+tx_0000AXJmJCFjNBVupQpRIJ,03/07/2023,13:02:56,Pot transfer,Treats Pot,,Transfers,-100.00,GBP,-100.00,GBP,,,,,,-100.00,
+tx_0000AXJn2U6bqKMMf9al61,03/07/2023,13:11:07,Faster payment,Ewan Wallace,,Transfers,-125.00,GBP,-125.00,GBP,Holidays,,,Holidays,,-125.00,
+tx_0000AXNlNY3avNAk8MrSgj,05/07/2023,11:11:21,Card payment,Tabac Le Massena,📚,Gifts,-6.54,GBP,-7.60,EUR,Postcards ,28 Rue de la Salie,,TABAC LE MASSENA       BAYONNE       FRA,,-6.54,
+tx_0000AXNrjPMMXaMxIBa83N,05/07/2023,12:22:32,Card payment,Casino Shoppi,,Groceries,-8.25,GBP,-9.59,EUR,,27 RUE VICTOR HUGO                           ,,CASINO SHOPPI          BAYONNE       FRA,,-8.25,
+tx_0000AXQHfV2kSAOScO6bab,06/07/2023,16:22:35,Faster payment,Ikran Jama,,Gifts,-6.00,GBP,-6.00,GBP,bday Guinness,,,bday Guinness,,-6.00,
+tx_0000AXSeoSSg6lWq0aK3t4,07/07/2023,19:51:20,Card payment,Yvette Cafe,🍸,Alcohol,-35.94,GBP,-42.00,EUR,drinks w the boys,20 Rue de l'Arroun,,YVETTE CAFE            SEIGNOSSE     FRA,,-35.94,
+tx_0000AXaHnOT8iusS0Gzj9B,11/07/2023,12:11:07,Faster payment,Aiyla Salam,,Transfers,-60.00,GBP,-60.00,GBP,Lizzy McA refund,,,Lizzy McA refund,,-60.00,
+tx_0000AXabvpziGbbR8erSlN,11/07/2023,15:56:45,Monzo-to-Monzo,Alistair Wallace,,Transfers,141.00,GBP,141.00,GBP,Fire Sungiggs,,,,,,141.00
+tx_0000AXcZAiVgSqaohEb4XR,12/07/2023,14:35:15,Faster payment,Ewan Wallace,,Transfers,-141.00,GBP,-141.00,GBP,Sunnies,,,Sunnies,,-141.00,
+tx_0000AXgU1J7hlBbIvMN75d,14/07/2023,11:56:22,Card payment,Amazon,📦,Shopping,-4.50,GBP,-4.50,GBP,,"1 Principal Place, Worship Str",,AMAZON UK RETAIL       https://protect-eu.mimecast.com/s/NDmCC5AwDS88JHyGBfu?domain=amazon.co LUX,,-4.50,
+tx_0000AXiy8Aeb29s94AY0i9,15/07/2023,16:43:10,Card payment,Caffè Nero,☕,Snacks,-3.45,GBP,-3.45,GBP,,14-15 Spring Street,,CAFFE NERO 87 PADDINGT LONDON        GBR,,-3.45,
+tx_0000AXj1161s84l0YhkjaN,15/07/2023,17:15:31,Card payment,Trainline,🚄,Transport,-7.45,GBP,-7.45,GBP,,,,Trainline              London        GBR,,-7.45,
+tx_0000AXjb1KPYFp4DKEACdF,15/07/2023,23:58:56,Monzo-to-Monzo,Tom Wallace,,Shopping,-18.75,GBP,-18.75,GBP,Film dev,,,,,-18.75,
+tx_0000AXjeFwnMdikTxxUMvy,16/07/2023,00:35:12,Card payment,Google,💻,Entertainment,0.00,GBP,0.00,GBP,Active card check,,,GOOGLE *TEMPORARY HOLD https://protect-eu.mimecast.com/s/bz-SC3YrAf33kcgRo9X?domain=g.co GBR,,0.00,
+tx_0000AXjeGQYA0oDkZS582j,16/07/2023,00:35:17,Card payment,Oxford Bus Company,🚅,Transport,-99.00,GBP,-99.00,GBP,,3rd Floor41-51 Grey Street,,OXFORDBUS.CO.UK        +441865785400 GBR,,-99.00,
+tx_0000AXjsogsDE98Aaalg2L,16/07/2023,03:18:21,Card payment,Google,💻,Entertainment,0.00,GBP,0.00,GBP,Active card check,,,GOOGLE *TEMPORARY HOLD https://protect-eu.mimecast.com/s/bz-SC3YrAf33kcgRo9X?domain=g.co GBR,,0.00,
+tx_0000AXjsrDVyq1WZtU1Vic,16/07/2023,03:18:48,Card payment,Wetherspoon,🍺,Alcohol,-6.30,GBP,-6.30,GBP,,,,J D WETHERSPOON PLC    Watford       GBR,,-6.30,
+tx_0000AXkHwbM2801gOpmOzh,16/07/2023,07:59:54,Card payment,Platanus,🚖,Transport,-12.00,GBP,-14.00,EUR,Airport bus,,,PLATANUS               Dubrovnik     HRV,,-12.00,
+tx_0000AXkSZLbnbTAy8MWWTR,16/07/2023,09:58:57,Card payment,Studenac 841,🍎,Personal care,-13.75,GBP,-16.04,EUR,Suncream,Frana Supila 5,,STUDENAC 841           DUBROVNIK     HRV,,-13.75,
+tx_0000AXkpbg7yaDFHyxmPoH,16/07/2023,14:17:05,Card payment,Panini Bar Franco Roma,🍸,Eating out,-10.29,GBP,-12.00,EUR,Late lunch ,Boskoviceva 5,,PANINI BAR FRANCO ROMA DUBROVNIK     HRV,,-10.29,
+tx_0000AXkz8b0zVnrShJ73ir,16/07/2023,16:03:53,Card payment,Zore Trgovina,🍏,Groceries,-5.50,GBP,-6.41,EUR,Breakfasts,"Od Puca 4, Dubrovnik, 20000, Croatia",,"ZORE TRGOVINA, 2727529 DUBROVNIK     HRV",,-5.50,
+tx_0000AXmKA0RUkcw6RQZzl3,17/07/2023,07:34:09,Card payment,Studenac 351,🍎,Personal care,-6.28,GBP,-7.32,EUR,After sun ,,,STUDENAC 351           DUBROVNIK     HRV,,-6.28,
+tx_0000AXmYQc2i7XPv7pj9Xt,17/07/2023,10:14:02,Card payment,"Adriatic Stores, 26467",,Entertainment,-30.01,GBP,-35.00,EUR,Dubrovnik day pass,,,"ADRIATIC STORES, 26467 DUBROVNIK     HRV",,-30.01,
+tx_0000AXmrteOuKZdpt8k46D,17/07/2023,13:52:10,Card payment,Taj Mahal,🍴,Eating out,-36.36,GBP,-42.40,EUR,Lunch out ,2 Ulica Nikole Gučetića,,TAJ MAHAL              DUBROVNIK     HRV,"Alcohol:-6.00,Eating out:-30.36",-36.36,
+tx_0000AXms6DCmkp2E9bt6nJ,17/07/2023,13:54:26,Card payment,Taj Mahal,🍴,Transfers,-36.01,GBP,-42.00,EUR,,2 Ulica Nikole Gučetića,,TAJ MAHAL              DUBROVNIK     HRV,,-36.01,
+tx_0000AXmyzHn80JDchcHuuQ,17/07/2023,15:11:37,Card payment,Konzum P-0784,🍎,Alcohol,-5.91,GBP,-6.89,EUR,tinnies ,,,KONZUM P-0784          DUBROVNIK     HRV,,-5.91,
+tx_0000AXnSIph54pecgKXSba,17/07/2023,20:40:06,Card payment,Dalmatino Dubrovnik,🍽,Eating out,-19.35,GBP,-22.50,EUR,Dinner,15 Prijeko ulica,,DALMATINO DUBROVNIK    DUBROVNIK     HRV,"Alcohol:-6.00,Eating out:-13.35",-19.35,
+tx_0000AXoASplA5D3XOixjF3,18/07/2023,04:54:56,monzo_paid,,,Shopping,-5.00,GBP,-5.00,GBP,,,,Monzo Plus,,-5.00,
+tx_0000AXoT4qK6EbsFVqeYN7,18/07/2023,08:23:29,Card payment,Konzum P-0784,🍎,Groceries,-0.82,GBP,-0.95,EUR,Water,,,KONZUM P-0784          DUBROVNIK     HRV,,-0.82,
+tx_0000AXoVDoRwlkWtrUgPzd,18/07/2023,08:47:31,Card payment,Muzej - Porta,🎨,Entertainment,-3.44,GBP,-4.00,EUR,Museum entry,ULICA SV.DOMINIKA 4,,MUZEJ - PORTA          DUBROVNIK     HRV,,-3.44,
+tx_0000AXoYujCmRZTT6e81eE,18/07/2023,09:28:54,Card payment,Gianni Slasticarnica C,🍸,Snacks,-3.01,GBP,-3.50,EUR,Ice cream,bb Ulica kneza Damjana Jude,,GIANNI SLASTICARNICA C DUBROVNIK     HRV,,-3.01,
+tx_0000AXoaGNePMa9zNyYVOc,18/07/2023,09:44:00,Faster payment,MCLOUGHLIN M J,,Transfers,36.00,GBP,36.00,GBP,LUNCH,,,LUNCH,,,36.00
+tx_0000AXofPWor8yM0sda7kp,18/07/2023,10:41:41,Card payment,Konzum P-0784,🍎,Groceries,-0.82,GBP,-0.95,EUR,Water,,,KONZUM P-0784          DUBROVNIK     HRV,,-0.82,
+tx_0000AXogGPK3kN3cSkP6sz,18/07/2023,10:51:15,Card payment,Panini Bar Franco Roma,🍸,Eating out,-10.32,GBP,-12.00,EUR,Lunch,Boskoviceva 5,,PANINI BAR FRANCO ROMA DUBROVNIK     HRV,,-10.32,
+tx_0000AXoiI7B0NsPmqqjNJq,18/07/2023,11:13:58,Card payment,Luza 2,🚅,Entertainment,-23.22,GBP,-27.00,EUR,ferry to Lokrum island ,2 Luža ulica,,LUZA 2                 DUBROVNIK     HRV,,-23.22,
+tx_0000AXoz0EoUwwQZMHVPIf,18/07/2023,14:21:13,Card payment,Butiga Lacroma,💨,Snacks,-3.01,GBP,-3.50,EUR,,Otok Lokrum,,BUTIGA LACROMA         brovnik       HRV,,-3.01,
+tx_0000AXpJDJjRyKjcyymjy6,18/07/2023,18:07:41,Card payment,Konzum P-0784,🍎,Alcohol,-9.32,GBP,-10.84,EUR,Tinnies ,,,KONZUM P-0784          DUBROVNIK     HRV,,-9.32,
+tx_0000AXpQZEYUbCj6ye3cpd,18/07/2023,19:30:05,Card payment,Tisak P-3001,📰,Alcohol,-20.05,GBP,-23.29,EUR,Vodka and mixers ,,,Tisak P-3001           DUBROVNIK     HRV,,-20.05,
+tx_0000AXpigTkoHt2jJiQJ7p,18/07/2023,22:53:05,Card payment,Culture Club Revelin,🍸,Alcohol,-34.09,GBP,-39.60,EUR,4 tequilas - outrageous ,"3 Ulica Svetog Dominika, Dubrovnik, Dubrovačko-neretvanska županija, 20000, Croatia",,"CULTURE CLUB REVELIN,  DUBROVNIK     HRV",,-34.09,
+tx_0000AXq0JQczXhgzoF0p17,19/07/2023,02:10:36,Card payment,Du P-22 Vrata Od Ploca,🍞,Groceries,-3.01,GBP,-3.50,EUR,post night out pizza ,Ulica Vrata od Ploča,,DU P-22 VRATA OD PLOCA DUBROVNIK     HRV,,-3.01,
+tx_0000AXqpPF3SZyWBg638jp,19/07/2023,11:43:07,Card payment,Google,💻,Entertainment,-1.00,GBP,-1.00,GBP,,,,GOOGLE *TEMPORARY HOLD https://protect-eu.mimecast.com/s/aatpC4WvBhPPVhxFHtL?domain=g.co USA,,-1.00,
+tx_0000AXqpPLcm9ZlNHcFuTJ,19/07/2023,11:43:08,Card payment,Google,💻,Entertainment,1.00,GBP,1.00,GBP,,,,GOOGLE *SERVICES       650-253-0000  USA,,,1.00
+tx_0000AXqpPtdJi4g3BRiFnt,19/07/2023,11:43:14,Card payment,Moonpig,🎂🎈,Gifts,-4.99,GBP,-4.99,GBP,Mums bday card,,,MOONPIG                +443454500100 GBR,,-4.99,
+tx_0000AXqsLPwaS3B1bVV4aX,19/07/2023,12:16:02,Card payment,Studenac 351,🍎,Groceries,-1.74,GBP,-2.02,EUR,,,,STUDENAC 351           DUBROVNIK     HRV,,-1.74,
+tx_0000AXqu2AMKN42hXakEDp,19/07/2023,12:34:58,Faster payment,SANDFELDER D,,Snacks,1.74,GBP,1.74,GBP,Dylan Sandfelder,,,Dylan Sandfelder,,,1.74
+tx_0000AXr0oSmBnbhrHZWvQ1,19/07/2023,13:50:55,Card payment,Google,💻,Entertainment,-1.00,GBP,-1.00,GBP,,,,GOOGLE *TEMPORARY HOLD https://protect-eu.mimecast.com/s/aatpC4WvBhPPVhxFHtL?domain=g.co USA,,-1.00,
+tx_0000AXr0oejRLeYSDVnBKr,19/07/2023,13:50:57,Card payment,Google,💻,Entertainment,1.00,GBP,1.00,GBP,,,,GOOGLE *SERVICES       650-253-0000  USA,,,1.00
+tx_0000AXr0rDSFDmIZs5WNov,19/07/2023,13:51:25,Card payment,Clickandboat.com,⛵️,Entertainment,-125.00,GBP,-125.00,GBP,boat rental ,Quai Du 4 Septembre,,CLICKANDBOAT.COM       +33186472692  FRA,,-125.00,
+tx_0000AXrPT3Jhl9DnlwPWS1,19/07/2023,18:27:11,Card payment,Tisak P-3001,📰,Alcohol,-4.80,GBP,-5.58,EUR,Beers,,,Tisak P-3001           DUBROVNIK     HRV,,-4.80,
+tx_0000AXv7wPOLk7ydH0PRFR,21/07/2023,13:29:38,Card payment,M&S,🛍 ,Lunch,-7.35,GBP,-7.35,GBP,,NORTH TERMINAL,,M&S SIMPLY FOOD - SSP  GATWICK NTH A GBR,,-7.35,
+tx_0000AXvVTNuCaUmZlyyuI6,21/07/2023,17:53:19,Card payment,Sainsbury’s,🍏,Groceries,-5.19,GBP,-5.19,GBP,,Park End Street,,SAINSBURY'S OXFORD PAR OXFORD        GBR,,-5.19,
+tx_0000AXx0z3kCNGKd6bxCcb,22/07/2023,11:21:06,Card payment,Caffè Nero,☕,Snacks,-3.35,GBP,-3.35,GBP,,C O Blackwells Books,,CAFFE NERO OXFORD BLAC OXFORD        GBR,,-3.35,
+tx_0000AXxC59aie9bx5Cw3tJ,22/07/2023,13:25:27,Faster payment,WALLACE ERS,,Income,50.00,GBP,50.00,GBP,July top up,,,July top up,,,50.00
+tx_0000AXxLUMUaiUuFJRrCtO,22/07/2023,15:10:52,Card payment,Tesco,🍏 ,Groceries,-45.12,GBP,-45.12,GBP,Post holiday shop ,Magdalen Street,,TESCO STORES 6292      OXFORD        GBR,,-45.12,
+tx_0000AXxaxTh4WIx5ME2Ken,22/07/2023,18:04:12,Card payment,Sainsbury’s,🍏,Groceries,-2.25,GBP,-2.25,GBP,Rice,Park End Street,,SAINSBURY'S OXFORD PAR OXFORD        GBR,,-2.25,
+tx_0000AXyv3TuOpHbRJLAgd7,23/07/2023,09:24:06,Pot transfer,Treats Pot,,Transfers,30.00,GBP,30.00,GBP,,,,,,,30.00
+tx_0000AXyvOu6MdVuKpaTQdn,23/07/2023,09:27:58,Card payment,https://protect-eu.mimecast.com/s/6l_8Cg7D3C663FyJGSF?domain=carbootltd.com,,Transfers,-38.85,GBP,-38.85,GBP,,27 Old Gloucester Street,,https://protect-eu.mimecast.com/s/HRxLCjAg3SEEruYlJsz?domain=carbootltd.com     +447738892840 GBR,,-38.85,
+tx_0000AXyvSBKZ2HE2vqBhT8,23/07/2023,09:28:34,Pot transfer,Treats Pot,,Transfers,8.85,GBP,8.85,GBP,,,,,,,8.85
+tx_0000AXz7RJNooHB2adzNEv,23/07/2023,11:42:52,Faster payment,WALLACE ERS,,Income,50.00,GBP,50.00,GBP,July top up,,,July top up,,,50.00
+tx_0000AXz7ck6HogZHo2Vj6n,23/07/2023,11:44:56,Card payment,Tesco,🍏 ,Groceries,-28.67,GBP,-28.67,GBP,,Magdalen Street,,TESCO STORES 6292      OXFORD        GBR,"Personal care:-12.00,Groceries:-16.67",-28.67,
+tx_0000AXzcvAwRrBtC9Vymmo,23/07/2023,17:35:37,Card payment,Trainline,🚄,Transport,-23.44,GBP,-23.44,GBP,Train for house viewing ,Holborn 120,,trainline              +443332022222 GBR,,-23.44,
+tx_0000AY1bbUadNtggmLAdj0,24/07/2023,16:30:17,Card payment,Transport for London,🚆,Transport,-8.10,GBP,-8.10,GBP,"Travel charge for Monday, 24 Jul","Windsor House, 42-50 Victoria Street",,TfL Travel Charge      https://protect-eu.mimecast.com/s/44F4C8XzJs33GcwB1qQ?domain=tfl.gov.uk GBR,,-8.10,
+tx_0000AY1g5IvlhG7AVC4MGA,24/07/2023,17:20:29,Card payment,Tesco,🍏 ,Snacks,-2.03,GBP,-2.03,GBP,,71 Drayton Park,,TESCO STORES 5648      LONDON        GBR,,-2.03,
+tx_0000AY3DpmS9kzEQjW7UG2,25/07/2023,11:13:21,Faster payment,SANDFELDER D,,Transport,19.58,GBP,19.58,GBP,Dylan Sandfelder,,,Dylan Sandfelder,,,19.58
+tx_0000AY3ESf6Z0leX41awUb,25/07/2023,11:20:23,Faster payment,MCLOUGHLIN M J,,Transport,33.00,GBP,33.00,GBP,CROATIA,,,CROATIA,,,33.00
+tx_0000AY3NtMhWRZdt8quphB,25/07/2023,13:06:04,Card payment,Prince Of Wales,🍸,Snacks,-3.80,GBP,-3.80,GBP,Coke,2 Cleveland Terrace,,Prince Of Wales        London        GBR,,-3.80,
+tx_0000AY3Z4nt4nxT9VDAFl3,25/07/2023,15:11:23,Faster payment,WALLACE ERS,,Entertainment,4.18,GBP,4.18,GBP,Croatia repayments,,,Croatia repayments,,,4.18
+tx_0000AY3fCf1YF2IeNBcQ89,25/07/2023,16:20:02,Card payment,ODEON,🎥,Entertainment,-17.00,GBP,-17.00,GBP,Barbie,,,ODEON Cinemas          London        GBR,,-17.00,
+tx_0000AY3fW4avOYQRSfmYoE,25/07/2023,16:23:32,Card payment,Prince Of Wales,🍸,Alcohol,-6.40,GBP,-6.40,GBP,Pint w Grannan,2 Cleveland Terrace,,Prince Of Wales        London        GBR,,-6.40,
+tx_0000AY3kUFFdIpPVQIPRoX,25/07/2023,17:19:14,Card payment,Prince Of Wales,🍸,Alcohol,-3.40,GBP,-3.40,GBP,Pint w Grannan,2 Cleveland Terrace,,Prince Of Wales        London        GBR,,-3.40,
+tx_0000AY4OC4oVMoUbAkxkY6,26/07/2023,00:44:09,Card payment,Transport for London,🚆,Transport,-8.10,GBP,-8.10,GBP,House viewing ,"Windsor House, 42-50 Victoria Street",,TfL Travel Charge      https://protect-eu.mimecast.com/s/44F4C8XzJs33GcwB1qQ?domain=tfl.gov.uk GBR,,-8.10,
+tx_0000AY4yw9Vxom80OItzyT,26/07/2023,07:35:52,Card payment,Trainline,🚄,Transport,-2.60,GBP,-2.60,GBP,Bicester ,,,Trainline              London        GBR,,-2.60,
+tx_0000AY73pQ5Qh3MflimHs9,27/07/2023,07:40:06,Card payment,Great Western Railway,🚂,Transport,-6.60,GBP,-6.60,GBP,,Park End Street,,GWR OXFORD SST         OXFORD        GBR,,-6.60,
+tx_0000AY75MsI8wqybro8nqd,27/07/2023,07:57:21,Pot transfer,Rainy Day Pot,,Transfers,6.99,GBP,6.99,GBP,ear buds ,,,,,,6.99
+tx_0000AY75WeFxz9JHEXmcaX,27/07/2023,07:59:07,Card payment,Amazon,📦,Shopping,-6.99,GBP,-6.99,GBP,,,,AMZNMKTPLACE AMAZON.CO LONDON        GBR,,-6.99,
+tx_0000AY7ghXyfMrSQ8aqq8X,27/07/2023,14:55:40,Pot transfer,Savings Pot,,Transfers,60.00,GBP,60.00,GBP,,,,,,,60.00
+tx_0000AY7ziNd9DmyHrV391d,27/07/2023,18:28:43,Card payment,Sainsbury’s,🍏,Alcohol,-9.75,GBP,-9.75,GBP,Dinner w alaric,Park End Street,,SAINSBURY'S OXFORD PAR OXFORD        GBR,"Groceries:-4.75,Alcohol:-5.00",-9.75,
+tx_0000AY9z8wfvpwHsj6r0za,28/07/2023,17:31:44,Card payment,Google Play,💻,Shopping,-2.79,GBP,-2.79,GBP,,,,GOOGLE *Google Play Ap 650-253-0000  GBR,,-2.79,
+tx_0000AYAEJF31siPlus1dmk,28/07/2023,20:21:40,Card payment,Banana Tree Oxford,🍽,Eating out,-23.30,GBP,-23.30,GBP,,63 George Street,,BANANA TREE OXFORD       UNITED KING GBR,,-23.30,
+tx_0000AYAFEJ1FmwhHevKAk5,28/07/2023,20:31:59,Card payment,Sainsbury’s,🍏,Groceries,-3.25,GBP,-3.25,GBP,,Park End Street,,SAINSBURY'S OXFORD PAR OXFORD        GBR,,-3.25,
+tx_0000AYBVLHMU8tZl1dsJij,29/07/2023,11:07:14,Card payment,Sainsbury’s,🍏,Groceries,-5.20,GBP,-5.20,GBP,,Park End Street,,SAINSBURY'S OXFORD PAR OXFORD        GBR,,-5.20,
+tx_0000AYBuw6Cx4YQS5uKtG5,29/07/2023,15:54:01,Card payment,Oxford Bus Company,🚅,Transport,-3.00,GBP,-3.00,GBP,,Denmark Street,,OXFORD BUS COMPANY     OXFORD        GBR,,-3.00,
+tx_0000AYC0iAjU3JHThn1qBX,29/07/2023,16:58:43,Card payment,Headington Food & Wine,🍎,Groceries,-1.25,GBP,-1.25,GBP,,121 London Road,,PPOINT_*HEADINGTON F&W OXFORD        GBR,,-1.25,
+tx_0000AYCktOd3K38BGxjsXb,30/07/2023,01:36:11,Card payment,Stagecoach,🚌,Transport,-2.00,GBP,-2.00,GBP,,Daw Bank,,STGCOACH/CTYLINK       BUS TICKET    GBR,,-2.00,
+tx_0000AYFJ957hOguKiMxsCv,31/07/2023,07:09:25,Card payment,Sainsbury’s,🍏,Groceries,-1.55,GBP,-1.55,GBP,,Park End Street,,SAINSBURY'S OXFORD PAR OXFORD        GBR,,-1.55,
+tx_0000AYFifUJzkANKyApZxZ,31/07/2023,11:55:24,Card payment,Sainsbury’s,🍏,Lunch,-3.05,GBP,-3.05,GBP,,Park End Street,,SAINSBURY'S OXFORD PAR OXFORD        GBR,,-3.05,
+tx_0000AYFk8usMC7qa1n93Df,31/07/2023,12:11:55,Card payment,sp rinkit.com,🛋,Shopping,-10.69,GBP,-10.69,GBP,,"Corn Exchange, Baffins Lane",,SP RINKIT.COM          +441903726077 GBR,,-10.69,
+
