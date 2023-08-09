@@ -1,7 +1,8 @@
 from sqlalchemy import inspect, select, Table, and_
-import pandas as pd
-from db_manager import SQL, get_class_from_table_name, InvestmentsVariableTbl, InvestmentsFixedTbl
 from datetime import datetime
+import pandas as pd
+
+from sql.db_manager import SQL, get_class_from_table_name, InvestmentsVariableTbl, InvestmentsFixedTbl
 from api import SchemaMonzo, SchemaInputs, SchemaInvestmentFixed, SchemaInvestmentVariable
 
 import logging

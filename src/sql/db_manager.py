@@ -7,7 +7,7 @@ import os
 from api import SchemaMonzo, SchemaInputs, SchemaInvestmentFixed, SchemaInvestmentVariable
 
 import logging
-from log import get_logger
+from utils.log import get_logger
 logger = get_logger(__name__)
 
 Base = declarative_base()
