@@ -174,7 +174,7 @@ class SQL:
 
         if os.getenv("DEBUG") == 'True':
             address = r'sqlite:///data/debug.db'
-        elif demo:
+        elif os.getenv("demo") == 'True':
             address = r'sqlite:///data/demo.db'
         else:
             address = r'sqlite:///data/spending.db'

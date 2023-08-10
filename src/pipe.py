@@ -10,8 +10,9 @@ logger = get_logger(__name__)
 
 class pipeline:
 
-    def __init__(self, demo=False):
-        self.db = SQL(demo=demo)
+    def __init__(self):
+
+        self.db = SQL()
 
     def create_tables_in_db(self) -> None:
         ''' creates all tables in the schema '''
@@ -54,6 +55,8 @@ class pipeline:
 
 if __name__ == '__main__':
 
+    # N.B. when using demo you must instantiate pipeline(), not just use e.g. pipeline.append_to_db()
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--month", required=True)  # month
     parser.add_argument("-y", "--year", required=True)  # year
@@ -70,10 +73,10 @@ if __name__ == '__main__':
     month_id = f'{args.month[:3].upper()} {args.year[-2:]}'
     logging.info(f'month_id is "{month_id}"')
 
-    #if args.demo:
-    #    os.environ['demo'] = 'True'
+    if args.demo:
+        os.environ['demo'] = 'True'
 
-    pipe = pipeline(demo=args.demo)
+    pipe = pipeline()
     if args.create:
         pipe.create_tables_in_db()
     if args.append:
