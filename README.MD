@@ -43,18 +43,18 @@ Remember to activate the virtual environment before running the script if you're
 The API is run via the command line from the location of the pipe.py script (i.e. /Finances-API/src) with the following 
 notation:
 
-```python pipe.py [date] [optional actions]```
+```python pipe.py [action(s)]```
+
+**actions**
+- *--create* / *-c* : creates new tables in the database (previous tables need to have been removed prior)
+- *--delete* : deletes all tables and their contents from the specified database
+- *--append* / *-a* : appends data from the date given to the database. must also specify a date (see below)
+- *--dashboard* / *-d* : generates a link for the dashboard. A date must still be specified for this action
+- *--demo* : can be used to select demo data/database/dashboard (see setup_demo.bat)
 
 **date**
 - *--month* / *-m* : specifies the month to be appended (July/july/jul/JUL would all be accepted for July).
 - *--year* / *-y* : specifies the year to be appended (YY or YYYY)
-
-**optional actions**
-- *--create* / *-c* : creates new tables in the database (previous tables need to have been removed prior)
-- *--delete* : deletes all tables and their contents from the specified database
-- *--append* / *-a* : appends data from the date given to the database
-- *--dashboard* / *-d* : generates a link for the dashboard. A date must still be specified for this action
-- *--demo* : can be used to select demo data/database/dashboard (see setup_demo.bat)
 
 **e.g.** ```python pipe.py --month July --year 2023 --append --dashboard``` is equivalent to 
 ```python pipe.py -m jul -y 23 -a -d``` and will append data from July 2023 to the database before giving a link to the 

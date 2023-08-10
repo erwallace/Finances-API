@@ -58,21 +58,28 @@ if __name__ == '__main__':
     # N.B. when using demo you must instantiate pipeline(), not just use e.g. pipeline.append_to_db()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--month", required=True)  # month
-    parser.add_argument("-y", "--year", required=True)  # year
+
     parser.add_argument("-c", "--create", action=argparse.BooleanOptionalAction)  # create db tables
     parser.add_argument("--delete", action=argparse.BooleanOptionalAction)  # delete all db tables
     parser.add_argument("-a", "--append", action=argparse.BooleanOptionalAction)  # append to db
     parser.add_argument("-d", "--dashboard", action=argparse.BooleanOptionalAction)  # generate dashboard
     parser.add_argument("--demo", action=argparse.BooleanOptionalAction)  # use demo database
+
+    parser.add_argument("-m", "--month")  # month
+    parser.add_argument("-y", "--year")  # year
+
     args = parser.parse_args()
 
-    months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-    if args.month[:3].upper() not in months:
-        raise KeyError(f'"{args.month[:3].upper()}" is not a valid month.')
+    if args.append and (args.month is None or args.year is None):
+        parser.error("For 'append', both --month and --year must be specified.")
 
-    month_id = f'{args.month[:3].upper()} {args.year[-2:]}'
-    logging.info(f'month_id is "{month_id}"')
+    if not (args.month is None or args.year is None):
+        months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+        if args.month[:3].upper() not in months:
+            raise KeyError(f'"{args.month[:3].upper()}" is not a valid month.')
+
+        month_id = f'{args.month[:3].upper()} {args.year[-2:]}'
+        logging.info(f'month_id is "{month_id}"')
 
     if args.demo:
         os.environ['demo'] = 'True'
