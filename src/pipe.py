@@ -60,9 +60,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--month", required=True)  # month
     parser.add_argument("-y", "--year", required=True)  # year
-    parser.add_argument("-c", "--create", action=argparse.BooleanOptionalAction)  # create db tables?
-    parser.add_argument("-a", "--append", action=argparse.BooleanOptionalAction)  # append to db?
-    parser.add_argument("-d", "--dashboard", action=argparse.BooleanOptionalAction)  # generate dashboard?
+    parser.add_argument("-c", "--create", action=argparse.BooleanOptionalAction)  # create db tables
+    parser.add_argument("--delete", action=argparse.BooleanOptionalAction)  # delete all db tables
+    parser.add_argument("-a", "--append", action=argparse.BooleanOptionalAction)  # append to db
+    parser.add_argument("-d", "--dashboard", action=argparse.BooleanOptionalAction)  # generate dashboard
     parser.add_argument("--demo", action=argparse.BooleanOptionalAction)  # use demo database
     args = parser.parse_args()
 
@@ -77,6 +78,8 @@ if __name__ == '__main__':
         os.environ['demo'] = 'True'
 
     pipe = pipeline()
+    if args.delete:
+        pipe.delete_all_db_tables()
     if args.create:
         pipe.create_tables_in_db()
     if args.append:
