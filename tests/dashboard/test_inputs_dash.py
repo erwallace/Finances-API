@@ -1,7 +1,10 @@
-from api import SchemaMonzo
 import pytest
 import os
-from db_manager import SQL
+from sql.db_manager import SQL
+
+# python -m pytest --rootdir=src/  [expect this to work]
+# pytest config.py look for extra options
+# pytest cant find src modules
 
 class TestQueries:
 

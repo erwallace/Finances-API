@@ -178,8 +178,7 @@ class SQL:
             address = r'sqlite:///data/spending.db'
 
         self.engine = create_engine(address)
-        Session = sessionmaker(bind=self.engine)
-        self.session = Session()
+        self.Session = sessionmaker(bind=self.engine)
         logging.info(f'SQL connection established to {address}')
 
     def create_table(self, table_name: str) -> None:
