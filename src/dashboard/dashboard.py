@@ -38,40 +38,6 @@ MONTHLY COMPONENTS LAYOUT
 8 - spending by subcategory table
 '''
 
-'''
-STATUS:
-
-General
-- play around with colour schemes
-- can I round the edges of cards? add shadows?
-
-- create "fake" data to be displayed in github
-- write README explanation of dashboard
-
-Title
-- change title font (bold at the very least)
-
-Summary Stats
-- add title to search summary (centered)
-- play with font and size of text
-- can I set position of number and delta independently?
-
-Bar Chart
-- space out sub/category toggle
-- add difference between columns?
-- hovertemplate text for categories tab
-- decrease size of y axis labels (use abbreviations? just label with category?
-
-Timeline Spending
-- change colour scheme to match theme
-- change x axis labels to dd mmm
-- reformat under/over budget label
-- expand y axis +- 10 from max/min of both lines
-
-Sunburst Chart
-- space out sub/category toggles
-'''
-
 subcategory_palette = create_palette(vibrant)
 
 
