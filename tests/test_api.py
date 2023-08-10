@@ -1,12 +1,11 @@
 import pytest
-import os
 import pandas as pd
 import numpy as np
 from pandas.testing import assert_frame_equal, assert_series_equal
 from datetime import datetime
 import os
 
-from api import Finances, SchemaMonzo, Monzo, SchemaInputs, Budget, Accounts, Income, SchemaInvestmentVariable, InvestmentVariable, SchemaInvestmentFixed, InvestmentFixed
+from api import SchemaMonzo, Monzo, SchemaInputs, Budget, Accounts, Income, SchemaInvestmentVariable, InvestmentVariable, SchemaInvestmentFixed, InvestmentFixed
 
 
 class TestFinancesPreprocessing:

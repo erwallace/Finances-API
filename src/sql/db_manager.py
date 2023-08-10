@@ -7,7 +7,7 @@ import os
 from api import SchemaMonzo, SchemaInputs, SchemaInvestmentFixed, SchemaInvestmentVariable
 
 import logging
-from log import get_logger
+from utils.log import get_logger
 logger = get_logger(__name__)
 
 Base = declarative_base()
@@ -178,8 +178,7 @@ class SQL:
             address = r'sqlite:///data/spending.db'
 
         self.engine = create_engine(address)
-        Session = sessionmaker(bind=self.engine)
-        self.session = Session()
+        self.Session = sessionmaker(bind=self.engine)
         logging.info(f'SQL connection established to {address}')
 
     def create_table(self, table_name: str) -> None:

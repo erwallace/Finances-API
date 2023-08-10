@@ -10,8 +10,7 @@ import fnmatch
 import pandas as pd
 import numpy as np
 
-import logging
-from log import get_logger
+from utils.log import get_logger
 logger = get_logger(__name__)
 
 
@@ -173,7 +172,7 @@ class Finances:
         '''adds category column to existing dataframe based on subcategory column and json mapping'''
 
         # read in configurations from json
-        with open("sub_category.json") as jsn:
+        with open("utils/sub_category.json") as jsn:
             mapper = jsn.read()
 
         # decoding the JSON to dictionary

@@ -1,4 +1,4 @@
-from palettes import vibrant, create_palette
+from utils.palettes import vibrant, create_palette
 
 import plotly.io as pio
 import plotly.graph_objects as go
@@ -7,8 +7,10 @@ from dash import dcc, html, dash_table, Dash, Input, Output
 import dash_bootstrap_components as dbc
 from dash.dash_table.Format import Format, Group, Scheme, Symbol
 
-from db_manager import MonthsTbl, SQL
-from dash_inputs import *
+from sqlalchemy import Table, select
+
+from sql.db_manager import SQL, MonthsTbl
+from dashboard.dash_inputs import *
 
 import pandas as pd
 import calendar
@@ -295,8 +297,8 @@ def all_spending_table():
                 fixed_rows={'headers': True},
                 style_table={'height': 150},
                 # TODO: reduce row height
-                # css=[{"selector": ".dash-spreadsheet tr th", "rule": "height: 20px;"},  # set height of header
-                #      {"selector": ".dash-spreadsheet tr td", "rule": "height: 10px;"}],  # set height of body rows
+                # css=[{"selector": ".dashboard-spreadsheet tr th", "rule": "height: 20px;"},  # set height of header
+                #      {"selector": ".dashboard-spreadsheet tr td", "rule": "height: 10px;"}],  # set height of body rows
                 columns=[
                     {'id':'Date', 'name':'Date'},
                     {'id':'Subcategory', 'name':'Subcategory'},

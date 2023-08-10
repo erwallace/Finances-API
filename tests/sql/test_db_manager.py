@@ -6,7 +6,7 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from api import SchemaMonzo
-from db_manager import SQL, get_class_from_table_name, SpendingTbl, MonthsTbl
+from sql.db_manager import SQL, get_class_from_table_name, SpendingTbl, MonthsTbl
 
 # GLOBAL FIXTURES
 

@@ -57,5 +57,5 @@ All unit tests should be run from the root directory (/Finances-API) using the c
 run all unit tests for the API. To run specific test modules, classes or units using 
 ```python -m pytest  <path to test module>::<test class name>::<unit test name>```.
 
-### Thanks for reading and I hope you find this as useful as I have!
+### Thanks for reading! I hope you find this as useful as I have!
 

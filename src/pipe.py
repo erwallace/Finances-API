@@ -1,10 +1,10 @@
 import argparse
-from db_manager import SQL
+from sql.db_manager import SQL
 from api import *
-from dashboard_combined import my_dashboard
+from dashboard.dashboard import my_dashboard
 
 import logging
-from log import get_logger
+from utils.log import get_logger
 logger = get_logger(__name__)
 
 
