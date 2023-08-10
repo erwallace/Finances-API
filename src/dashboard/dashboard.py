@@ -590,7 +590,7 @@ def _tab_selection(tab):
     elif tab == 'investments_tab':
         return investments_dashboard()
 
-def my_dashboard():
+def my_dashboard(demo=False):
     pio.templates.default = "plotly"
 
     # suppressed callback exceptions because ids of plots aren't give inn app.layout due to being called from add_tabs() function.

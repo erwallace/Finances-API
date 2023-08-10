@@ -205,7 +205,7 @@ class Monzo(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaMonzo = SchemaMonzo()
 
-    def preprocess(self, DEBUG=pd.DataFrame()) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def preprocess(self, DEBUG=pd.DataFrame(), demo=False) -> tuple[pd.DataFrame, pd.DataFrame]:
         '''loads Monzo file and returns as pandas dataframe'''
         if os.getenv('DEBUG'):
             df = DEBUG
@@ -214,7 +214,10 @@ class Monzo(Finances):
             dt = datetime.strptime(self.month_id, self.MONTH_FORMAT)
             month = datetime.strftime(dt, '%B')
             year = datetime.strftime(dt, '%Y')
-            file = fnmatch.filter(os.listdir(log_folder), f'MonzoDataExport_{month}_{year}*.csv')
+            if demo:
+                file = fnmatch.filter(os.listdir(log_folder), f'DEMO MonzoDataExport_{month}_{year}*.csv')
+            else:
+                file = fnmatch.filter(os.listdir(log_folder), f'MonzoDataExport_{month}_{year}*.csv')
             if len(file) == 0:
                 raise ValueError(f'No files found in {log_folder} matching MonzoDataExport_{month}_{year}*.csv')
             elif len(file) > 1:
@@ -283,7 +286,7 @@ class Budget(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInputs = SchemaInputs()
 
-    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame(), demo=False) -> pd.DataFrame:
         '''loads budget file and returns as pandas dataframe'''
         if os.getenv('DEBUG'):
             df = DEBUG
@@ -292,7 +295,10 @@ class Budget(Finances):
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
             log_folder = os.path.join('data', 'inputs')
-            file = fnmatch.filter(os.listdir(log_folder),  f'inputs_{mm_yy}*.csv')
+            if demo:
+                file = fnmatch.filter(os.listdir(log_folder),  f'DEMO inputs_{mm_yy}*.csv')
+            else:
+                file = fnmatch.filter(os.listdir(log_folder), f'inputs_{mm_yy}*.csv')
             if len(file) == 0:
                 raise ValueError(f'No files found in {log_folder} matching inputs_{mm_yy}*.csv')
             elif len(file) > 1:
@@ -319,7 +325,7 @@ class Accounts(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInputs = SchemaInputs()
 
-    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame(), demo=False) -> pd.DataFrame:
         '''loads accounts file and returns as pandas dataframe'''
         if os.getenv('DEBUG'):
             df = DEBUG
@@ -328,7 +334,10 @@ class Accounts(Finances):
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
             log_folder = os.path.join('data', 'inputs')
-            file = fnmatch.filter(os.listdir(log_folder), f'inputs_{mm_yy}*.csv')
+            if demo:
+                file = fnmatch.filter(os.listdir(log_folder), f'DEMO inputs_{mm_yy}*.csv')
+            else:
+                file = fnmatch.filter(os.listdir(log_folder), f'inputs_{mm_yy}*.csv')
             if len(file) == 0:
                 raise ValueError(f'No files found in {log_folder} matching inputs_{mm_yy}*.csv')
             elif len(file) > 1:
@@ -354,7 +363,7 @@ class Income(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInputs = SchemaInputs()
 
-    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame(), demo=False) -> pd.DataFrame:
         '''loads income file and returns as pandas dataframe'''
         if os.getenv('DEBUG'):
             df = DEBUG
@@ -363,7 +372,10 @@ class Income(Finances):
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
             log_folder = os.path.join('data', 'inputs')
-            file = fnmatch.filter(os.listdir(log_folder), f'inputs_{mm_yy}*.csv')
+            if demo:
+                file = fnmatch.filter(os.listdir(log_folder), f'DEMO inputs_{mm_yy}*.csv')
+            else:
+                file = fnmatch.filter(os.listdir(log_folder), f'inputs_{mm_yy}*.csv')
             if len(file) == 0:
                 raise ValueError(f'No files found in {log_folder} matching inputs_{mm_yy}*.csv')
             elif len(file) > 1:
@@ -389,7 +401,7 @@ class InvestmentVariable(Finances):
     SKIPROWS: int = 1
     SCHEMA: SchemaInvestmentVariable = SchemaInvestmentVariable()
 
-    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame(), demo=False) -> pd.DataFrame:
         '''loads investments_variable file and returns as pandas dataframe'''
         if os.getenv('DEBUG'):
             df = DEBUG
@@ -398,7 +410,10 @@ class InvestmentVariable(Finances):
             mm_yy = datetime.strftime(dt, self.DATETIME_FORMAT)
 
             log_folder = os.path.join('data', 'inputs')
-            file = fnmatch.filter(os.listdir(log_folder), f'investments_variable_{mm_yy}*.csv')
+            if demo:
+                file = fnmatch.filter(os.listdir(log_folder), f'DEMO investments_variable_{mm_yy}*.csv')
+            else:
+                file = fnmatch.filter(os.listdir(log_folder), f'investments_variable_{mm_yy}*.csv')
             if len(file) == 0:
                 raise ValueError(f'No files found in {log_folder} matching investments_variable_{mm_yy}*.csv')
             elif len(file) > 1:
@@ -426,12 +441,15 @@ class InvestmentFixed(Finances):
     SCHEMA: SchemaInvestmentFixed = SchemaInvestmentFixed()
 
     # TODO: only need two of duration, purchase date and maturity date. Should calculate the 3rd
-    def preprocess(self, DEBUG=pd.DataFrame()) -> pd.DataFrame:
+    def preprocess(self, DEBUG=pd.DataFrame(), demo=False) -> pd.DataFrame:
         '''loads investments_fixed file and returns as pandas dataframe'''
         if os.getenv('DEBUG'):
             df = DEBUG
         else:
-            log_file = os.path.join('data', 'inputs', 'investments_fixed.csv')
+            if demo:
+                log_file = os.path.join('data', 'inputs', 'DEMO investments_fixed.csv')
+            else:
+                log_file = os.path.join('data', 'inputs', 'investments_fixed.csv')
             df = pd.read_csv(log_file, skiprows=self.SKIPROWS, names=self.SCHEMA.df_columns_initial)
 
         df[self.SCHEMA.AMOUNT] = self.convert_to_pennies(df[self.SCHEMA.AMOUNT])

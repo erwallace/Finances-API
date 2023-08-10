@@ -170,10 +170,12 @@ class InvestmentsFixedTbl(Base):
 
 class SQL:
 
-    def __init__(self):
+    def __init__(self, demo=False):
 
         if os.getenv("DEBUG") == 'True':
             address = r'sqlite:///data/debug.db'
+        elif os.getenv("demo") == 'True':
+            address = r'sqlite:///data/demo.db'
         else:
             address = r'sqlite:///data/spending.db'
 
@@ -196,15 +198,10 @@ class SQL:
     def create_all_tables(self) -> None:
         ''' creates all tables in the schema '''
         tbls = ['months', 'spending', 'budget', 'accounts', 'income', 'investments_variable', 'investments_fixed']
+
         for tbl in tbls:
             self.create_table(tbl)
-        '''
-        for tbl in tbls:
-            try:
-                self.create_table(tbl)
-            except:
-                logging.warning(f'table already exists: {tbl}')
-        '''
+
 
     def delete_table(self, table_name: str) -> None:
         '''
